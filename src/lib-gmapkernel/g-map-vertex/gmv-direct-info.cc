@@ -124,23 +124,23 @@ void CGMapVertex::updateDirectInfoWithVertex(int ADirectInfoNumber)
 //******************************************************************************
 void CGMapVertex::pointDirectInfoToAttributeVertex(int ADirectInfoIndex)
 {
-  int treated= getNewMark();
+    int treated= getNewMark();
 
-  for (CDynamicCoverageAll it(this); it.cont(); ++it)
-    if (!isMarked(*it, treated))
-      {
-	CAttributeVertex* vertex = getVertex(*it);
+    for (CDynamicCoverageAll it(this); it.cont(); ++it)
+        if (!isMarked(*it, treated))
+        {
+            CAttributeVertex* vertex = getVertex(*it);
 
-	if (vertex!=NULL)
-	  for (CDynamicCoverageVertex cov(this, *it); cov.cont(); ++cov)
-	    {
-	      setMark(*cov,treated);
-	      (*cov)->setDirectInfo(ADirectInfoIndex, vertex);
-	    }
-      }
+            if (vertex!=NULL)
+                for (CDynamicCoverageVertex cov(this, *it); cov.cont(); ++cov)
+                {
+                    setMark(*cov,treated);
+                    (*cov)->setDirectInfo(ADirectInfoIndex, vertex);
+                }
+        }
 
-  negateMaskMark(treated);
-  freeMark(treated);
+    negateMaskMark(treated);
+    freeMark(treated);
 }
 //******************************************************************************
 void CGMapVertex::pointDirectInfoToAttributeVertex(int ADirectInfoIndex,

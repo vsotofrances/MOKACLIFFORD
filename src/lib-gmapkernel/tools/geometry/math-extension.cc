@@ -25,7 +25,7 @@
 #include "math-extension.hh"
 #include "vertex.hh"
 //******************************************************************************
-const TCoordinate EPSILON = 1E-4;
+const TCoordinate EPSILON = 1E-5;
 //******************************************************************************
 TCoordinate det(const CVertex & ALine1, const CVertex & ALine2,
 		const CVertex & ALine3)

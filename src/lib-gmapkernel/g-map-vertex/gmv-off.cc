@@ -65,7 +65,7 @@ void CGMapVertex::linkFaceAlpha2OFF(vector< list<CDart*> >& ATestVertices,
             CGeometry::getNormalVector(faceNormalVector(current), edge);
 
          // On va tourner autour de l'arête pour trouver l'endroit ou
-         // insérer la face courante.
+         // insérer la face courante.//gira el lado para encontrar el lugar donde insertar la cara actual
          bool here = false;
          bool roundingError = false;
          CDart* first = foundEdge;
@@ -252,22 +252,26 @@ CDart* CGMapVertex::addEdgeOFF(vector< CVertex >& AInitVertices,
                                unsigned long int AV1, unsigned long int AV2,
                                int AIndex, CDart* APrec)
 {
-   CDart* dart1 = addMapDart(AInitVertices[AV1]);
+   CDart* dart1 = addMapDart(AInitVertices[AV1]);//! metodo en gmv-inline.icc
    CDart* dart2 = addMapDart();
 
-   setDirectInfo(dart1, AIndex, (void*)AV1);
+   setDirectInfo(dart1, AIndex, (void*)AV1);//! DirectInfo[Aindex] contiene el putero al vertice
    setDirectInfo(dart2, AIndex, (void*)AV2);
 
-   // Coutures par alpha0 et alpha1
+   //! Coutures par alpha0
    linkAlpha0(dart1, dart2);
 
+   //! La otra pareja de dardos. Cosidos en volumen
    linkAlpha3(dart1, addMapDart());
    linkAlpha3(dart2, addMapDart());
+
    linkAlpha0(alpha3(dart1), alpha3(dart2));
 
+   //! Informacion de los vertices
    setDirectInfo(alpha3(dart1), AIndex, (void*)AV1);
    setDirectInfo(alpha3(dart2), AIndex, (void*)AV2);
 
+   //! Cose alpha1 si hay anteriores
    if (APrec != NULL)
    {
       linkAlpha1(APrec, dart1);
@@ -315,6 +319,8 @@ CDart* CGMapVertex::importOff3D(std::istream & AStream)
       --nbSommets;
    }
 
+   if(nbSommets!=0) return NULL;//**VIC**
+
    int index = getNewDirectInfo();
 
    while (nbFaces > 0)
@@ -322,7 +328,7 @@ CDart* CGMapVertex::importOff3D(std::istream & AStream)
       if (!AStream.good())
       {
          cout << "Problème de lecture : pas assez de faces" << endl;
-	 freeDirectInfo(index);
+         freeDirectInfo(index);
          return NULL;
       }
 
@@ -351,6 +357,103 @@ CDart* CGMapVertex::importOff3D(std::istream & AStream)
       }
       AStream.ignore(256,'\n'); // Ignore the end of the line.
       
+      prec = addEdgeOFF(initVertices, v1, vf, index,
+                        prec);
+
+      linkAlpha1(first, prec);
+      linkAlpha1(alpha3(first), alpha3(prec));
+
+      linkFaceAlpha2OFF(testVertices, index, first);
+
+      --nbFaces;
+   }
+
+   freeDirectInfo(index);
+
+   return first;
+}
+/*! \brief Version VICTOR
+ *
+ **************************************************************************/
+CDart* CGMapVertex::importOff3D_VSF(std::istream & AStream)
+{
+   // Lectura de los puntos 3D
+   vector< CVertex > initVertices;
+   vector< list<CDart*> > testVertices;
+
+   string txt;
+   TCoordinate x, y, z;
+   CDart *prec = NULL, *first = NULL;
+   unsigned int i, n;
+   unsigned long int v1, v2, vf;
+
+   AStream >> txt;
+   if (txt != "OFF" && txt != "OFF3D")
+   {
+      cout << "Input problem : file is not OFF format" << endl;
+      return NULL;
+   }
+
+   unsigned int nbSommets = 0;
+   unsigned int nbFaces = 0;
+   unsigned int doubleNbAretes = 0;
+
+   /** Lectura geometria */
+   AStream >> nbSommets >> nbFaces >> doubleNbAretes;
+   while (nbSommets > 0)
+   {
+      if (!AStream.good())
+      {
+         cout << "Input problem : vertex" << endl;
+         return NULL;
+      }
+
+      AStream >> x >> y >> z;
+      initVertices.push_back(CVertex(x, y, z));//!< crea el vértice
+      testVertices.push_back(list<CDart*>());//!< crea una lista de dardos para este vértice
+      --nbSommets;
+   }
+
+   if(nbSommets!=0) return NULL;//**VIC**
+
+   /** Pide indice en DirectInfo */
+   int index = getNewDirectInfo();
+
+   /** Lectura de las caras */
+   while (nbFaces > 0)
+   {
+      if (!AStream.good())
+      {
+         cout << "Input problem : faces" << endl;
+         freeDirectInfo(index);
+         return NULL;
+      }
+
+      //! Le nombre de sommets
+      AStream >> n;
+      prec  = NULL;
+      first = NULL;
+
+      //! Le premier sommet.
+      AStream >> v1; --n;
+      vf = v1;
+      assert(v1 < initVertices.size());
+
+      //! Les autres.
+      for (i = 0;i < n;++i)
+      {
+         AStream >> v2;
+         assert(v2 < initVertices.size());
+
+         prec = addEdgeOFF(initVertices, v1, v2, index,
+                           prec);
+
+         if (first == NULL) first = alpha0(prec);
+
+         v1 = v2;
+      }
+      AStream.ignore(256,'\n'); // Ignore the end of the line.
+
       prec = addEdgeOFF(initVertices, v1, vf, index,
                         prec);
 

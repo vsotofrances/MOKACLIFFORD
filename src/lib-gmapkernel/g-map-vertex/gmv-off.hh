@@ -46,6 +46,7 @@ CDart* importOff2D(std::istream & AStream);
  * déroulé, NULL sinon
  */
 CDart* importOff3D(std::istream & AStream);
+CDart* importOff3D_VSF(std::istream & AStream);//!< VICTOR
 
 /**
  * Sous fonction utile pour ajouter une arête entre les sommets

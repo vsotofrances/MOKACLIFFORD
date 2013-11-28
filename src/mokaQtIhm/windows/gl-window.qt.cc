@@ -155,14 +155,14 @@ void GLWindow::paintGL()
   glPopAttrib();
 
   if (FDragMode)
-    {
+  {
       p.setPen(Qt::white) ;
       p.drawRect(FStartX, FStartY, FCurX - FStartX, FCurY - FStartY);
       if ( FOwner->getControler()->getModeDeselectionAtStop() )
-	p.drawText(FStartX, FStartY, "Deselect");
+          p.drawText(FStartX, FStartY, "Deselect");
       else
-    p.drawText(FStartX, FStartY, "Select");
-    }
+          p.drawText(FStartX, FStartY, "Select");
+  }
   p.end();
 }
 //************************************************************
@@ -266,7 +266,7 @@ void GLWindow :: creation()
    }
 }
 //*************************************************************
-// Gestion des evenements
+// Gestion des evenements VIC SELECCION AL CLICK
 //*************************************************************
 void GLWindow :: mousePressEvent(QMouseEvent * eb)
 {

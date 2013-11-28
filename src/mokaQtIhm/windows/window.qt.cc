@@ -1065,8 +1065,9 @@ void Window::callbackImport()
    QStringList type_load;
 
    type_load << "Off (*.off)";
-   type_load << "AOff (*.aoff)";//vic
-
+#ifdef MODULE_BUILD_BUILDINGS
+   type_load << "AOff (*.aoff)";
+#endif//MODULE_BUILD_BUILDINGS
    std::string filename = getOpenFileName("Import a file",
                                           type_load, &type) ;
 

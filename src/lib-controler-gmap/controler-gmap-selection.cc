@@ -275,6 +275,8 @@ void CControlerGMap::setModeDeselectionAtStop()
 bool CControlerGMap::getModeDeselectionAtStop() const
 { return FDeselectMode; }
 //******************************************************************************
+// VIC SELECCION AL ARRASTRAR
+//******************************************************************************
 void CControlerGMap::modeSelectionOperationStop()
 {
    CViewPrecompile* view = FViews[FCurrentViewId];

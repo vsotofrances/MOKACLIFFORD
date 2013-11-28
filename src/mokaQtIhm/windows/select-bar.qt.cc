@@ -35,11 +35,11 @@
 //*****************************
 static const char * const mokaLabels [ NB_SELECTION_BOUTONS ] =
 {
-   "B",
+   "D",
    "0", "1", "2", "3",
    "01*", "02*", "03*",
    "12", "13", "23",
-   "S", "A*", "F*", "V*", "C"
+   "P", "E*", "F*", "V*", "C"
 } ;
 
 static const TOrbit mokaOrbit [ NB_SELECTION_BOUTONS ] =
@@ -53,16 +53,16 @@ static const TOrbit mokaOrbit [ NB_SELECTION_BOUTONS ] =
 
 static const char * const mokaTooltips [ NB_SELECTION_BOUTONS ] =
 {
-   "[----: Brin]",
+   "[----: Dart]",
    "[0---]", "[-1--]", "[--2-]", "[---3]",
-   "[01--: Face/Volume (ou demi-face)]",
-   "[0-2-: Ar&ecirc;te/Volume]",
-   "[0--3: Ar&ecirc;te/Face (ou demi-ar&ecirc;te)]",
-   "[-12-: Sommet/Volume]", "[-1-3: Sommet/Face]",
-   "[--23: Sommet/Ar&ecirc;te (ou demi-sommet)]",
-   "[-123: Sommet]", "[0-23: Ar&ecirc;te]", "[01-3: Face]",
+   "[01--: Face/Volume (or semi-face)]",
+   "[0-2-: Edge/Volume]",
+   "[0--3: Edge/Face (or semi-edge)]",
+   "[-12-: Vertex/Volume]", "[-1-3: Vertex/Face]",
+   "[--23: Vertex/Edge (o semi-vertex)]",
+   "[-123: Vertex]", "[0-23: Edge]", "[01-3: Face]",
    "[012-: Volume]",
-   "[0123: Composante connexe]"
+   "[0123: Connected Component]"
 } ;
 
 //******************************

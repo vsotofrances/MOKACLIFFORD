@@ -50,7 +50,10 @@ enum
   ATTRIBUTE_SPAMOD_VOXEL_LIST,
 
   // Attributs geology
-  ATTRIBUTE_GEO_MACRO_FACE
+  ATTRIBUTE_GEO_MACRO_FACE,
+
+  // Attributs VICTOR
+  ATTRIBUTE_VICTOR_R4 //! multivector R4. Projective geometric algebra
 };
 
 //******************************************************************************
