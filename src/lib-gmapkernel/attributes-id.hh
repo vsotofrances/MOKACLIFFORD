@@ -53,7 +53,7 @@ enum
   ATTRIBUTE_GEO_MACRO_FACE,
 
   // Attributs VICTOR
-  ATTRIBUTE_VICTOR_R4 //! multivector R4. Projective geometric algebra
+  ATTRIBUTE_MULTIVECTOR
 };
 
 //******************************************************************************

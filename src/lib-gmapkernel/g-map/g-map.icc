@@ -257,35 +257,35 @@ bool CGMap::isValidOrbit(CDart* ADart, TOrbit AOrbit)
 INLINE
 void CGMap::groupAttributes(CDart* ADart1, CDart* D2, TMask16 AMask)
 {
-  TOrbit i,j;
+    TOrbit i,j;
 
-  CDart* d1;
-  CDart* d2;
+    CDart* d1;
+    CDart* d2;
 
-  for (i = ORBIT_0; i <= ORBIT_0123; ++i)   // pour chaque orbite
-    if (AMask[i] && isOrbitUsed(i) && isValidOrbit(ADart1, i))
-      {
-	if (isSameOrbit(ADart1, D2, i, d1))    // même orbite => rien a grouper
-	  for (j = i+1; j <= ORBIT_0123; ++j)
-	    {
-	      if (IS_ORBIT_INCLUDED(i,j)) // l'orbite i incluse dans l'orbite j
-		AMask.set(j,false);
-	    }
-	else
-	  { // ADart1 et D2 dans deux orbites différentes => il faut grouper
-	    d2 = getEmbeddingOwner(D2,i);
+    for (i = ORBIT_0; i <= ORBIT_0123; ++i)   // pour chaque orbite
+        if (AMask[i] && isOrbitUsed(i) && isValidOrbit(ADart1, i))
+        {
+            if (isSameOrbit(ADart1, D2, i, d1))    // même orbite => rien a grouper
+                for (j = i+1; j <= ORBIT_0123; ++j)
+                {
+                    if (IS_ORBIT_INCLUDED(i,j)) // l'orbite i incluse dans l'orbite j
+                        AMask.set(j,false);
+                }
+            else
+            { // ADart1 et D2 dans deux orbites différentes => il faut grouper
+                d2 = getEmbeddingOwner(D2,i);
 
-	    if (d1!=NULL && d2!=NULL) // les 2 brins portent un embedding
-	      { // 1) on enleve l'embedding de d1 pour <orbit>
-		CEmbedding *E = d1->removeEmbedding(i); 
-		assert(E!=NULL);
-		// 2) puis d2 récupère de E les attributs qu'il n'a pas
-		d2->mergeEmbedding(E);
-		// 3) on détruit E (et les éventuels attributs restés)
-		E->destroy();
-	      }
-	  }
-      }
+                if (d1!=NULL && d2!=NULL) // les 2 brins portent un embedding
+                { // 1) on enleve l'embedding de d1 pour <orbit>
+                    CEmbedding *E = d1->removeEmbedding(i);
+                    assert(E!=NULL);
+                    // 2) puis d2 récupère de E les attributs qu'il n'a pas
+                    d2->mergeEmbedding(E);
+                    // 3) on détruit E (et les éventuels attributs restés)
+                    E->destroy();
+                }
+            }
+        }
 }
 //******************************************************************************
 INLINE

@@ -372,7 +372,7 @@ CDart* CGMapVertex::importOff3D(std::istream & AStream)
 
    return first;
 }
-/*! \brief Version VICTOR
+/*! @brief Version VICTOR
  *
  **************************************************************************/
 CDart* CGMapVertex::importOff3D_VSF(std::istream & AStream)
@@ -400,6 +400,7 @@ CDart* CGMapVertex::importOff3D_VSF(std::istream & AStream)
 
    /** Lectura geometria */
    AStream >> nbSommets >> nbFaces >> doubleNbAretes;
+   /** Lectura vertices */
    while (nbSommets > 0)
    {
       if (!AStream.good())
@@ -429,24 +430,23 @@ CDart* CGMapVertex::importOff3D_VSF(std::istream & AStream)
          return NULL;
       }
 
-      //! Le nombre de sommets
+      /** número de puntos de la cara */
       AStream >> n;
       prec  = NULL;
       first = NULL;
 
-      //! Le premier sommet.
+      /** primer punto */
       AStream >> v1; --n;
       vf = v1;
       assert(v1 < initVertices.size());
 
-      //! Les autres.
+      /** los otros */
       for (i = 0;i < n;++i)
       {
          AStream >> v2;
          assert(v2 < initVertices.size());
 
-         prec = addEdgeOFF(initVertices, v1, v2, index,
-                           prec);
+         prec = addEdgeOFF(initVertices, v1, v2, index, prec);
 
          if (first == NULL) first = alpha0(prec);
 
@@ -454,12 +454,13 @@ CDart* CGMapVertex::importOff3D_VSF(std::istream & AStream)
       }
       AStream.ignore(256,'\n'); // Ignore the end of the line.
 
-      prec = addEdgeOFF(initVertices, v1, vf, index,
-                        prec);
+      /** cierra la cara */
+      prec = addEdgeOFF(initVertices, v1, vf, index, prec);
 
       linkAlpha1(first, prec);
       linkAlpha1(alpha3(first), alpha3(prec));
 
+      /** conecta la cara a las otras caras ya leidas */
       linkFaceAlpha2OFF(testVertices, index, first);
 
       --nbFaces;

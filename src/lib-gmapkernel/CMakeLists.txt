@@ -40,9 +40,11 @@ add_library (gmapkernel
   tools/geometry/vertex.cc tools/geometry/math-extension.cc
   tools/geometry/vector.cc tools/geometry/plane.cc
 
-  tools/geometry/mvectorR4.cc #VICTOR
-
   tools/streams/streams.cc
+
+#VICTOR
+  #g-map-vertex/attribute-mutlivector.cc
+  tools/geometry/multivector.cc
 )
 
 #-------------------------------------------------------------------------------
