@@ -69,7 +69,7 @@ CDartVertex* CGMapVertex::addMapDart(const CVertex & AVertex,const CMultivector 
 {
   CDartVertex * dart = static_cast<CDartVertex *>(CGMapGeneric::addMapDart());
   setVertex(dart, AVertex);
-  //setMv(dart, AMv);
+  setMv(dart, AMv);
   return dart;
 }
 //******************************************************************************
@@ -78,8 +78,7 @@ INLINE
 CDartVertex* CGMapVertex::addMapDart(const CMultivector & AMv)
 {
   CDartVertex * dart = static_cast<CDartVertex *>(CGMapGeneric::addMapDart());
-  //setVertex(dart, AVertex);
-  //setMv(dart, AMv);
+  setMv(dart, AMv);
   return dart;
 }
 //******************************************************************************
@@ -125,6 +124,16 @@ void CGMapVertex::setVertex(CDart* ADart, const CVertex & AVertex)
   assert(findVertex(ADart)==NULL);
 
   addAttribute(ADart, ORBIT_VERTEX, new CAttributeVertex(AVertex));
+}
+//******************************************************************************
+/** VICTOR **/
+INLINE
+void CGMapVertex::setMv(CDart* ADart, const CMultivector & AMv)
+{
+  assert(ADart!=NULL);
+  assert(findVertex(ADart)==NULL);
+
+  addAttribute(ADart, ORBIT_SELF, new CAttributeMultivector(AMv));
 }
 //******************************************************************************
 INLINE

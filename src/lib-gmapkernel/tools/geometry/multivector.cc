@@ -5,6 +5,11 @@
 //******************************************************************************
 
 //INLINE
+CMultivector::CMultivector(const nklein::GeometricAlgebra< double, 4 > & AMv)
+{
+  MD=AMv;
+}
+
 CMultivector::CMultivector(const CDart *dart,CVertex *AVertex)
 {
     nklein::GeometricAlgebra< double, 4 > Q;

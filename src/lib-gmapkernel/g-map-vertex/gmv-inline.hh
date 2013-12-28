@@ -113,6 +113,7 @@ CAttributeVertex* getVertex(CDart* ADart) const;
 void setVertex(CDart* ADart, const CVertex & AVertex);
 void setVertex(CDart* ADart, CAttributeVertex* AVertex);
 
+void setMv(CDart* ADart, const CMultivector & AMv);//** VICTOR
 /**
  * Ecrase s'il existe le plongement sommet du brin ADart avec le sommet AVertex.
  * Si le sommet topologique incident à ADart n'est pas plongé, la méthode

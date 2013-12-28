@@ -43,7 +43,7 @@ add_library (gmapkernel
   tools/streams/streams.cc
 
 #VICTOR
-  #g-map-vertex/attribute-mutlivector.cc
+  g-map-vertex/attribute-multivector.cc
   tools/geometry/multivector.cc
 )
 

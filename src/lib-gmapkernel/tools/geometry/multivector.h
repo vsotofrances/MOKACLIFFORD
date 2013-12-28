@@ -44,6 +44,10 @@ public:
 
 public:
     /** constructores */
+    CMultivector(){};
+
+    CMultivector(const nklein::GeometricAlgebra< double, 4 > & AMv);
+
     /** Construye a partir de un dart de una cara
      *
      ***************************************************/
