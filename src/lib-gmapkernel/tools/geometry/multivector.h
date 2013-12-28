@@ -37,17 +37,25 @@ private:
     nklein::GeometricAlgebra< double, 4 > PD,LD; //homogeneus dual model
     static nklein::GeometricAlgebra< double, 4 > A,AD; //homogeneus dual model
     nklein::GeometricAlgebra< double, 4 > Ih; // pseudoescalar homogeneus model
+    nklein::GeometricAlgebra<double, 4 > B; //Baricentre
+    const CDart * refdart; // reference dart
+    int sense;
 public:
 
 public:
     /** constructores */
-    CMultivector(const CDart *, bool ComputePlane=false);
+    /** Construye a partir de un dart de una cara
+     *
+     ***************************************************/
+    CMultivector(const CDart *,CVertex *AVertex=NULL);
 
 private:
+    int getSense(const CDart *);
+    nklein::GeometricAlgebra<double, 4 >  getPoint(const CDart * dart);
 
 };
 //******************************************************************************
-#include INCLUDE_INLINE("multivector.icc")
+//#include INCLUDE_INLINE("multivector.icc")
 //******************************************************************************
 #endif // MULTIVECTOR_H
 //******************************************************************************

@@ -28,6 +28,7 @@
 #include "inline-macro.hh"
 #include "math-extension.hh"
 #include "vertex.hh"
+#include "multivector.h" //** VICTOR: add multivector support
 //******************************************************************************
 
 /**

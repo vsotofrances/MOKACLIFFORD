@@ -55,6 +55,7 @@ virtual void delDart(CDart* ADart);
  * @return Un nouveau brin, de type CDartVertex
  */
 CDart* addMapDart();
+CDartVertex* addMapDart(const CMultivector & AMv);//** VICTOR
 
 /**
  * Crée une nouvelle instance de CDartVertex, dont le plongement est donné par
@@ -64,6 +65,7 @@ CDart* addMapDart();
  * @return Un nouveau brin de type CDartVertex
  */
 CDartVertex* addMapDart(const CVertex & AVertex);
+CDartVertex* addMapDart(const CVertex & AVertex,const CMultivector & AMv);//** VICTOR
 
 /**
  * Retourne le coefficient d'éclatement de la dimension ADim.

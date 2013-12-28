@@ -35,6 +35,7 @@
 #include "geometry.hh"
 #include "vertex.hh"
 #include "vector.hh"
+#include "multivector.h" //** VICTOR: add multivector support
 #include "transformation-matrix.hh"
 #include "mesh-diver.hh"
 

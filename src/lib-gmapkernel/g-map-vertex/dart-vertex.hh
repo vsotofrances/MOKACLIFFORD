@@ -27,6 +27,7 @@
 //******************************************************************************
 #include "dart.hh"
 #include "attribute-vertex.hh"
+#include "attribute-multivector.hh" //** VICTOR
 
 #include <bitset>
 #include <iostream>

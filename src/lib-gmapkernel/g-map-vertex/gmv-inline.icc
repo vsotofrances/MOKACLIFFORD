@@ -63,6 +63,26 @@ CDartVertex* CGMapVertex::addMapDart(const CVertex & AVertex)
   return dart;
 }
 //******************************************************************************
+/** VICTOR **/
+INLINE
+CDartVertex* CGMapVertex::addMapDart(const CVertex & AVertex,const CMultivector & AMv)
+{
+  CDartVertex * dart = static_cast<CDartVertex *>(CGMapGeneric::addMapDart());
+  setVertex(dart, AVertex);
+  //setMv(dart, AMv);
+  return dart;
+}
+//******************************************************************************
+/** VICTOR **/
+INLINE
+CDartVertex* CGMapVertex::addMapDart(const CMultivector & AMv)
+{
+  CDartVertex * dart = static_cast<CDartVertex *>(CGMapGeneric::addMapDart());
+  //setVertex(dart, AVertex);
+  //setMv(dart, AMv);
+  return dart;
+}
+//******************************************************************************
 INLINE
 TCoordinate CGMapVertex::getBurstCoef(int ADim) const
 {

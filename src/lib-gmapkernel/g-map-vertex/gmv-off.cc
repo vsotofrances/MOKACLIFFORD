@@ -280,6 +280,41 @@ CDart* CGMapVertex::addEdgeOFF(vector< CVertex >& AInitVertices,
 
    return dart2;
 }
+/*! @brief Victor version
+ *
+ */
+CDart* CGMapVertex::addEdgeOFF_VSF(vector< CVertex >& AInitVertices,
+                               unsigned long int AV1, unsigned long int AV2,
+                               int AIndex, CDart* APrec)
+{
+   CDart* dart1 = addMapDart(AInitVertices[AV1]);//! metodo en gmv-inline.icc
+   CDart* dart2 = addMapDart();
+
+   setDirectInfo(dart1, AIndex, (void*)AV1);//! DirectInfo[Aindex] contiene el putero al vertice
+   setDirectInfo(dart2, AIndex, (void*)AV2);
+
+   //! Coutures par alpha0
+   linkAlpha0(dart1, dart2);
+
+   //! La otra pareja de dardos. Cosidos en volumen
+   linkAlpha3(dart1, addMapDart());
+   linkAlpha3(dart2, addMapDart());
+
+   linkAlpha0(alpha3(dart1), alpha3(dart2));
+
+   //! Informacion de los vertices
+   setDirectInfo(alpha3(dart1), AIndex, (void*)AV1);
+   setDirectInfo(alpha3(dart2), AIndex, (void*)AV2);
+
+   //! Cose alpha1 si hay anteriores
+   if (APrec != NULL)
+   {
+      linkAlpha1(APrec, dart1);
+      linkAlpha1(alpha3(APrec), alpha3(dart1));
+   }
+
+   return dart2;
+}
 //******************************************************************************
 CDart* CGMapVertex::importOff3D(std::istream & AStream)
 {
@@ -380,11 +415,13 @@ CDart* CGMapVertex::importOff3D_VSF(std::istream & AStream)
    // Lectura de los puntos 3D
    vector< CVertex > initVertices;
    vector< list<CDart*> > testVertices;
+   //vector< CVertex > baricentre;
+   CVertex point;
 
    string txt;
    TCoordinate x, y, z;
    CDart *prec = NULL, *first = NULL;
-   unsigned int i, n;
+   unsigned int i, n,nFaceVertex;
    unsigned long int v1, v2, vf;
 
    AStream >> txt;
@@ -400,6 +437,7 @@ CDart* CGMapVertex::importOff3D_VSF(std::istream & AStream)
 
    /** Lectura geometria */
    AStream >> nbSommets >> nbFaces >> doubleNbAretes;
+
    /** Lectura vertices */
    while (nbSommets > 0)
    {
@@ -417,7 +455,7 @@ CDart* CGMapVertex::importOff3D_VSF(std::istream & AStream)
 
    if(nbSommets!=0) return NULL;//**VIC**
 
-   /** Pide indice en DirectInfo */
+   /** Pide indice en DirectInfo para guardar el indice del vertice de dardo*/
    int index = getNewDirectInfo();
 
    /** Lectura de las caras */
@@ -432,6 +470,7 @@ CDart* CGMapVertex::importOff3D_VSF(std::istream & AStream)
 
       /** número de puntos de la cara */
       AStream >> n;
+      nFaceVertex=n;
       prec  = NULL;
       first = NULL;
 
@@ -439,12 +478,16 @@ CDart* CGMapVertex::importOff3D_VSF(std::istream & AStream)
       AStream >> v1; --n;
       vf = v1;
       assert(v1 < initVertices.size());
+      point.setX(initVertices[v1].getX());
+      point.setY(initVertices[v1].getY());
+      point.setZ(initVertices[v1].getZ());
 
-      /** los otros */
+      /** cada lado : 1..(n-1) */
       for (i = 0;i < n;++i)
       {
          AStream >> v2;
          assert(v2 < initVertices.size());
+         point=point+initVertices[v2];
 
          prec = addEdgeOFF(initVertices, v1, v2, index, prec);
 
@@ -453,8 +496,9 @@ CDart* CGMapVertex::importOff3D_VSF(std::istream & AStream)
          v1 = v2;
       }
       AStream.ignore(256,'\n'); // Ignore the end of the line.
+      point=point/nFaceVertex; //! Baricentre
 
-      /** cierra la cara */
+      /** cierra la cara lado 0 */
       prec = addEdgeOFF(initVertices, v1, vf, index, prec);
 
       linkAlpha1(first, prec);
