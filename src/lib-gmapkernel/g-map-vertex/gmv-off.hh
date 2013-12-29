@@ -58,10 +58,15 @@ CDart* importOff3D_VSF(std::istream & AStream);//!< VICTOR
 CDart* addEdgeOFF( std::vector< CVertex >& AInitVertices,
                    unsigned long int AV1, unsigned long int AV2,
                    int AIndex, CDart* APrec );
+//! VICTOR
 CDart* addEdgeOFF_VSF( std::vector< CVertex >& AInitVertices,
                    unsigned long int AV1, unsigned long int AV2,
                    int AIndex, CDart* APrec );
-
+//! VICTOR
+void computeOFFSenses_VSF( std::vector< std::list<int> >& face,
+                           std::vector< CVertex >& AInitVertices,
+                           std::vector< int >& senses,
+                           CVertex baricentro );
 /**
  * La face incidente à ADart vient d'être créé. Cherche à coudre toute
  * ses arêtes par alpha2 en utilisant pour cela les arêtes existantes

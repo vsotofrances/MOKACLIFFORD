@@ -589,3 +589,4 @@ CMultivector CGeometry::getMVectorPLV(const CVertex& AVertex1,
     return MVector;
 }
 //******************************************************************************
+//! VICTOR
