@@ -419,6 +419,17 @@ public:
 					 const CVertex& AVertex3);
 
   // @}
+  // @{
+  // @name Methods using mutivectors
+  //! VICTOR
+  /**
+   * @param AVertex1==>AVertex2,VolumenOrientation two values (-1,+1)
+   * @return Dual multivector representation; Point,Line,Volume (PLV)
+   */
+  static CMultivector getMVectorPLV(const CVertex& AVertex1,
+                                    const CVertex& AVertex2,
+                                    int VolumeOrientation);
+  // @}
 };
 //******************************************************************************
 #include INCLUDE_INLINE("geometry.icc")

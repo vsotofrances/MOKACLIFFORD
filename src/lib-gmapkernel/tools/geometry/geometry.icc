@@ -551,3 +551,41 @@ CVertex CGeometry::getRoundingNormalVector(const CVertex& AVertex1,
 #undef C
 }
 //******************************************************************************
+//! VICTOR
+CMultivector CGeometry::getMVectorPLV(const CVertex& AVertex1,
+                                      const CVertex& AVertex2,
+                                      int VolumeOrientation)
+{
+    assert(VolumeOrientation==1 || VolumeOrientation==-1);
+    CMultivector MVector;
+    //TCoordinate x1,y1,z1,x2,y2,z2;
+    nklein::GeometricAlgebra< double, 4 > Point[2],Line,I;
+    nklein::GeometricAlgebra< double, 4 > PointD,LineD,VolumeD;
+    nklein::GeometricAlgebra< double, 4 > Result;
+    I[e0|e1|e2|e3]=1;// I=I^{1} in R4
+
+    /** point */
+    Point[0][e0]=1;
+    Point[0][e1]=AVertex1.getX();
+    Point[0][e2]=AVertex1.getY();
+    Point[0][e3]=AVertex1.getZ();
+    Point[1][e0]=1;
+    Point[1][e1]=AVertex2.getX();
+    Point[1][e2]=AVertex2.getY();
+    Point[1][e3]=AVertex2.getZ();
+    PointD=Point[0]*I;
+
+    /** line */
+    Line=Point[0]^Point[1];
+    LineD=Line*I;
+
+    /** volume */
+    VolumeD[0]=VolumeOrientation;
+
+    /** adding grades */
+    Result=PointD+LineD+VolumeD;
+
+    MVector.setMD(Result);
+    return MVector;
+}
+//******************************************************************************

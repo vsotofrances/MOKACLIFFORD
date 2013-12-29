@@ -3,13 +3,16 @@
 //******************************************************************************
 //#include INCLUDE_NON_INLINE("multivector.icc")
 //******************************************************************************
-
 //INLINE
-CMultivector::CMultivector(const nklein::GeometricAlgebra< double, 4 > & AMv)
+CMultivector::CMultivector()
 {
-  MD=AMv;
 }
-
+//INLINE
+CMultivector::CMultivector(const CMultivector & AMv)
+{
+  MD=AMv.getMD();
+}
+//INLINE
 CMultivector::CMultivector(const CDart *dart,CVertex *AVertex)
 {
     nklein::GeometricAlgebra< double, 4 > Q;
@@ -45,34 +48,35 @@ CMultivector::CMultivector(const CDart *dart,CVertex *AVertex)
 
 /** Compute sense of the face according to the First Dart given
  *
- ******************************************************************************/
+ */
+//******************************************************************************
 //INLINE
 int CMultivector::getSense(const CDart *dart)
 {
-    const CDart *nextdart;
-    nklein::GeometricAlgebra<double, 4 > Point[2];
-    int count=0;
+//    const CDart *nextdart;
+//    nklein::GeometricAlgebra<double, 4 > Point[2];
+//    int count=0;
 
-    /** compute sense*/
-    nextdart=dart;
-    do
-    {
-        Point[0]=getPoint(nextdart);
-        Point[1]=getPoint(nextdart->getAlpha0());
-        A=B^Point[0]^Point[1];
-        AD=AD+A*Ih;
-        ++count;
+//    /** compute sense*/
+//    nextdart=dart;
+//    do
+//    {
+//        Point[0]=getPoint(nextdart);
+//        Point[1]=getPoint(nextdart->getAlpha0());
+//        A=B^Point[0]^Point[1];
+//        AD=AD+A*Ih;
+//        ++count;
 
-        nextdart=nextdart->getAlpha0()->getAlpha1();
+//        nextdart=nextdart->getAlpha0()->getAlpha1();
 
-    }while(nextdart!=dart);
-    AD=AD*(1./(double) count); //! dual del plano medio respecto al baricentro
-    if(AD[e0]>0)
-        return 1;
-    else
-        return -1;
+//    }while(nextdart!=dart);
+//    AD=AD*(1./(double) count); //! dual del plano medio respecto al baricentro
+//    if(AD[e0]>0)
+//        return 1;
+//    else
+//        return -1;
 }
-
+//******************************************************************************
 //INLINE
 nklein::GeometricAlgebra<double, 4 > CMultivector::getPoint(const CDart * dart)
 {
@@ -86,4 +90,16 @@ nklein::GeometricAlgebra<double, 4 > CMultivector::getPoint(const CDart * dart)
     Point[e3]=attVertex->getZ();
 
     return Point;
+}
+//******************************************************************************
+//INLINE
+nklein::GeometricAlgebra< double, 4 > CMultivector::getMD() const
+{
+    return MD;
+}
+//******************************************************************************
+//INLINE
+void CMultivector::setMD(nklein::GeometricAlgebra< double, 4 >  MVector)
+{
+    MD=MVector;
 }

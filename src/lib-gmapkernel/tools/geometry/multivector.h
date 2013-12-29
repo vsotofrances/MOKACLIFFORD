@@ -41,12 +41,15 @@ private:
     const CDart * refdart; // reference dart
     int sense;
 public:
-
+    /** Get */
+    nklein::GeometricAlgebra< double, 4 > getMD() const;
+    /** Set */
+    void setMD(nklein::GeometricAlgebra< double, 4 > MVector);
 public:
     /** constructores */
-    CMultivector(){};
+    CMultivector();
 
-    CMultivector(const nklein::GeometricAlgebra< double, 4 > & AMv);
+    CMultivector(const CMultivector &AMv);
 
     /** Construye a partir de un dart de una cara
      *
