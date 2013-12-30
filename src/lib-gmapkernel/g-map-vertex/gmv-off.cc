@@ -418,16 +418,17 @@ CDart* CGMapVertex::importOff3D(std::istream & AStream)
 //! VICTOR
 void CGMapVertex::computeOFFSenses_VSF(vector< list<int> >& face,
                           vector< CVertex >& AInitVertices,
-                          vector<int>& senses,
-                          CVertex baricentro)
+                          int &sense,
+                          CVertex baricentro,
+                          vector< int > &faceseq)
 {
     nklein::GeometricAlgebra< double, 4 >* Points[face.size()],B,I;
     nklein::GeometricAlgebra< double, 4 > planeOuter, planeOuterD;
     nklein::GeometricAlgebra< double, 4 > planeHole, planeHoleD;
     list< int >::iterator jit;
+    int v1;
 
     I[e0|e1|e2|e3]=1;
-    senses[0]=1;
 
     /** points in projective space */
     B[e0]=1;
@@ -441,7 +442,7 @@ void CGMapVertex::computeOFFSenses_VSF(vector< list<int> >& face,
     for(int i=0;i<face.size();i++)
     {
         int j=0;
-        for(jit=face[i].begin(); jit != face[i].end() ;jit++)
+        for(jit=face[i].begin(); jit != face[i].end() ;jit++)//iterate list
         {
             Points[i][j][e0]=1;
             Points[i][j][e1]=AInitVertices[(*jit)].getX();
@@ -451,34 +452,50 @@ void CGMapVertex::computeOFFSenses_VSF(vector< list<int> >& face,
         }
     }
 
-    /** planes */
+    /** planes: (vi)....(vi) */
+    // here the coplanarity could be checked
     for(int i=0;i<face.size();i++)
     {
         planeHole=0;
-        for(int j=0; j<face[i].size();++j)
+        for(int j; j<(face[i].size()-1);++j)
         {
-            if(i==0)
+            if(i==0)//outer
             {
-                planeOuter=planeOuter+B^Points[i][j]^Points[i][((j+1<face[i].size())?:j+1,0)];
+                planeOuter=planeOuter+B^Points[i][j]^Points[i][j+1];
             }
-            else
+            else//holes
             {
-                planeHole=planeHole+B^Points[i][j]^Points[i][((j+1<face[i].size())?:j+1,0)];
+                planeHole=planeHole+B^Points[i][j]^Points[i][j+1];
             }
         }
 
         if(i==0)
         {
             planeOuterD=planeOuter*I;
-            //guardar sólo este sentido del outer
+            sense=planeOuterD[0]>0?:1,-1;
         }
         else
         {
             planeHoleD=planeHole*I;
-            if((planeOuterD*planeHoleD)[0]>0) /** mismo sentido girar */
+            if((planeOuterD*planeHoleD)[0]>0) /** same sense=> reverse */
                 face[i].reverse();
         }
     }
+
+    /** rewrite sequence */
+    /** (v1)v2...(v1)vi..vi(v1)vi..vi */
+    v1=face[0].front();
+    for(jit=face[0].begin(); jit != face[0].end() ;jit++)//iterate list outer
+        faceseq.push_back((*jit));
+    faceseq.pop_back();
+
+    for(int i=1;i<face.size();i++)
+    {
+        faceseq.push_back(v1);
+        for(jit=face[i].begin(); jit != face[i].end() ;jit++)//iterate list hole-i
+            faceseq.push_back((*jit));
+    }
+
     /** destroy */
     for(int i=0;i<face.size();i++)
         delete [] Points[i];
@@ -491,14 +508,15 @@ CDart* CGMapVertex::importOff3D_VSF(std::istream & AStream)
    vector< CVertex > initVertices;
    vector< list<CDart*> > testVertices;
    vector< list<int> > face;
-   vector< int > sense;
+   vector < int > facesequence;
+   int sense;
    CVertex point;
 
    string txt;
    TCoordinate x, y, z;
    CDart *prec = NULL, *first = NULL;
    unsigned int i, n,nFaceVertex,npol;
-   unsigned long int v1, v2, vf,vi;
+   unsigned long int v1, v2, vf;
 
    AStream >> txt;
    if (txt != "OFF" && txt != "OFF3D")
@@ -551,40 +569,45 @@ CDart* CGMapVertex::importOff3D_VSF(std::istream & AStream)
       first = NULL;
       if(!face.empty())
           face.clear();
+      if(!facesequence.empty())
+          facesequence.clear();
       npol=0;
 
-      /** points and polygons in face*/
+      /** points=> baricentre, polygons in face are classified */
+      /** (v1)v2..... */
+      /** (v1) v2 ...(v1)vi...vi (v1)vi...vi */
       AStream >> v1; --n;
-      vf= vi= v1;
+      vf=v1;
       assert(v1 < initVertices.size());
       point=initVertices[v1];
+      ++npol;
       face.push_back(list<int>());
-      face[npol].push_back(v1);
+      face[npol-1].push_back(v1);
       for (i=0;i < n;++i)
       {
           AStream >> v2;
           assert(v2 < initVertices.size());
           point=point+initVertices[v2];
-          if(v2!=vi)
+          face[npol-1].push_back(v2);
+          if(v2==v1)
           {
-              face[npol].push_back(v2);
-          }
-          else
-          {
-              face.push_back(list<int>());
-              ++npol;
+              face[npol-1].pop_back();
+              ++npol;face.push_back(list<int>());
           }
       }
-      AStream.ignore(256,'\n'); // Ignore the end of the line.
-      point=point/nFaceVertex; //! Baricentre
-      computeOFFSenses_VSF(face,initVertices,sense,point);
+      face[0].push_back(v1);
+      AStream.ignore(256,'\n'); //! Ignore the end of the line.
+      point=point/nFaceVertex; //! Baricentre counts repeated points orignal sequence
+      computeOFFSenses_VSF(face,initVertices,sense,point,facesequence);
 
-      /** cada lado : 1..(n-1) */
-      for (i = 0;i < n;++i)
+      /** each side : 1..(n-1) */
+      n=nFaceVertex;
+      for (i = 1;i < n;++i)
       {
          //AStream >> v2;
          //assert(v2 < initVertices.size());
          //point=point+initVertices[v2];
+         v2=facesequence[i];//! read now from the vector
 
          prec = addEdgeOFF(initVertices, v1, v2, index, prec);
 
