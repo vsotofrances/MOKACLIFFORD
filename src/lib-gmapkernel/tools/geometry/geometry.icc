@@ -552,40 +552,63 @@ CVertex CGeometry::getRoundingNormalVector(const CVertex& AVertex1,
 }
 //******************************************************************************
 //! VICTOR
+/*! V1= start point
+ *  V2= end point
+ *  V3= auxiliary point (baricentre?)
+ *  Point=V1
+ *  line =V1^V2
+ *  plane=V3^V1^V2 (must have the sense imposed by @param sense)
+ */
 CMultivector CGeometry::getMVectorPLV(const CVertex& AVertex1,
                                       const CVertex& AVertex2,
+                                      const CVertex& AVertex3,
+                                      int sense,
                                       int VolumeOrientation)
 {
     assert(VolumeOrientation==1 || VolumeOrientation==-1);
     CMultivector MVector;
     //TCoordinate x1,y1,z1,x2,y2,z2;
-    nklein::GeometricAlgebra< double, 4 > Point[2],Line,I;
-    nklein::GeometricAlgebra< double, 4 > PointD,LineD,VolumeD;
-    nklein::GeometricAlgebra< double, 4 > Result;
+    nklein::GeometricAlgebra< double, 4 > Point[3],Line,Plane,I;
+    nklein::GeometricAlgebra< double, 4 > PointD,LineD,PlaneD,VolumeD;
+    nklein::GeometricAlgebra< double, 4 > ResultD;
     I[e0|e1|e2|e3]=1;// I=I^{1} in R4
 
     /** point */
     Point[0][e0]=1;
-    Point[0][e1]=AVertex1.getX();
-    Point[0][e2]=AVertex1.getY();
-    Point[0][e3]=AVertex1.getZ();
+    Point[0][e1]=AVertex3.getX();
+    Point[0][e2]=AVertex3.getY();
+    Point[0][e3]=AVertex3.getZ();
     Point[1][e0]=1;
-    Point[1][e1]=AVertex2.getX();
-    Point[1][e2]=AVertex2.getY();
-    Point[1][e3]=AVertex2.getZ();
-    PointD=Point[0]*I;
+    Point[1][e1]=AVertex1.getX();
+    Point[1][e2]=AVertex1.getY();
+    Point[1][e3]=AVertex1.getZ();
+    Point[2][e0]=1;
+    Point[2][e1]=AVertex2.getX();
+    Point[2][e2]=AVertex2.getY();
+    Point[2][e3]=AVertex2.getZ();
+
+    PointD=Point[1]*I;//! dual point tri-vector
 
     /** line */
-    Line=Point[0]^Point[1];
-    LineD=Line*I;
+    Line=Point[1]^Point[2];
+    LineD=Line*I; //! dual line bi-vector
+
+    /** plane */
+    Plane=Point[0]^Point[1]^Point[2];
+    PlaneD=Plane*I;//! dual plane vector
+    if(PlaneD[0]*sense<0)//! correct sense
+    {
+        Plane=Point[0]^Point[2]^Point[1];
+        PlaneD=Plane*I;
+    }
 
     /** volume */
     VolumeD[0]=VolumeOrientation;
 
-    /** adding grades */
-    Result=PointD+LineD+VolumeD;
+    /** adding resulting grades */
+    ResultD=PointD+LineD+PlaneD+VolumeD;
 
-    MVector.setMD(Result);
+    MVector.setMD(ResultD);
     return MVector;
 }
 //******************************************************************************

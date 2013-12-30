@@ -428,6 +428,8 @@ public:
    */
   static CMultivector getMVectorPLV(const CVertex& AVertex1,
                                     const CVertex& AVertex2,
+                                    const CVertex& AVertex3,
+                                    int sense,
                                     int VolumeOrientation);
   // @}
 };

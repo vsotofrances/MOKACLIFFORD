@@ -61,12 +61,14 @@ CDart* addEdgeOFF( std::vector< CVertex >& AInitVertices,
 //! VICTOR
 CDart* addEdgeOFF_VSF( std::vector< CVertex >& AInitVertices,
                    unsigned long int AV1, unsigned long int AV2,
-                   int AIndex, CDart* APrec );
+                   int AIndex, CDart* APrec,
+                   CVertex AVertex,
+                   int sense);
 //! VICTOR
 void computeOFFSenses_VSF( std::vector< std::list<int> >& face,
                            std::vector< CVertex >& AInitVertices,
                            int &sense,
-                           CVertex baricentro,
+                           CVertex &baricentro,
                            std::vector< int > &faceseq);
 /**
  * La face incidente à ADart vient d'être créé. Cherche à coudre toute

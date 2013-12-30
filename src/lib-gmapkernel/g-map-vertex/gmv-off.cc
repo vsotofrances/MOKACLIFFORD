@@ -283,27 +283,33 @@ CDart* CGMapVertex::addEdgeOFF(vector< CVertex >& AInitVertices,
 /*! @brief Victor version
  *  A polygon with holes must be ordered: outer-hole1-..-holen
  *  outer and holes must have different orientation.
+ *  @warning Avertex should not coincide with any AV1 or AV2
+ *  it would be used to create plane component of the multivector
  */
 CDart* CGMapVertex::addEdgeOFF_VSF(vector< CVertex >& AInitVertices,
                                unsigned long int AV1, unsigned long int AV2,
-                               int AIndex, CDart* APrec)
+                               int AIndex, CDart* APrec,
+                               CVertex AVertex,
+                               int sense)
 {
    CMultivector MVector1,MVector2,MVector3,MVector4;
 
-   MVector1=CGeometry::getMVectorPLV(AInitVertices[AV1],AInitVertices[AV2],1);
-   MVector2=CGeometry::getMVectorPLV(AInitVertices[AV2],AInitVertices[AV1],-1);
+   MVector1=CGeometry::getMVectorPLV(AInitVertices[AV1],AInitVertices[AV2],AVertex,sense,1);
+   MVector2=CGeometry::getMVectorPLV(AInitVertices[AV2],AInitVertices[AV1],AVertex,(sense*-1),-1);
    CDart* dart1 = addMapDart(AInitVertices[AV1],MVector1);//! metodo en gmv-inline.icc
    CDart* dart2 = addMapDart(MVector2);
 
    setDirectInfo(dart1, AIndex, (void*)AV1);//! DirectInfo[Aindex] contiene el putero al vertice
    setDirectInfo(dart2, AIndex, (void*)AV2);
 
-   //! Coutures par alpha0
+   //! Coutures par alpha0: dart1---dart2
    linkAlpha0(dart1, dart2);
 
-   //! La otra pareja de dardos. Cosidos en volumen
-   MVector3=CGeometry::getMVectorPLV(AInitVertices[AV1],AInitVertices[AV2],-1);
-   MVector4=CGeometry::getMVectorPLV(AInitVertices[AV2],AInitVertices[AV1],1);
+   //! The other pair
+   //! dart3---dart4
+   //! dart1---dart2
+   MVector3=CGeometry::getMVectorPLV(AInitVertices[AV1],AInitVertices[AV2],AVertex,sense,-1);
+   MVector4=CGeometry::getMVectorPLV(AInitVertices[AV2],AInitVertices[AV1],AVertex,(sense*-1), 1);
    linkAlpha3(dart1, addMapDart(MVector3));
    linkAlpha3(dart2, addMapDart(MVector4));
 
@@ -419,7 +425,7 @@ CDart* CGMapVertex::importOff3D(std::istream & AStream)
 void CGMapVertex::computeOFFSenses_VSF(vector< list<int> >& face,
                           vector< CVertex >& AInitVertices,
                           int &sense,
-                          CVertex baricentro,
+                          CVertex &baricentro,
                           vector< int > &faceseq)
 {
     nklein::GeometricAlgebra< double, 4 >* Points[face.size()],B,I;
@@ -451,6 +457,10 @@ void CGMapVertex::computeOFFSenses_VSF(vector< list<int> >& face,
             ++j;
         }
     }
+
+    /** avoid baricentre coincidence with any point in face */
+    /** but keep its "co-planarity" */
+    // TODO: VICTOR
 
     /** planes: (vi)....(vi) */
     // here the coplanarity could be checked
@@ -600,7 +610,7 @@ CDart* CGMapVertex::importOff3D_VSF(std::istream & AStream)
       point=point/nFaceVertex; //! Baricentre counts repeated points orignal sequence
       computeOFFSenses_VSF(face,initVertices,sense,point,facesequence);
 
-      /** each side : 1..(n-1) */
+      /** each side : named by the starting point 0..(n-1) */
       n=nFaceVertex;
       for (i = 1;i < n;++i)
       {
@@ -609,7 +619,7 @@ CDart* CGMapVertex::importOff3D_VSF(std::istream & AStream)
          //point=point+initVertices[v2];
          v2=facesequence[i];//! read now from the vector
 
-         prec = addEdgeOFF(initVertices, v1, v2, index, prec);
+         prec = addEdgeOFF_VSF(initVertices, v1, v2, index, prec,point,sense);
 
          if (first == NULL) first = alpha0(prec);
 
@@ -619,7 +629,7 @@ CDart* CGMapVertex::importOff3D_VSF(std::istream & AStream)
       //point=point/nFaceVertex; //! Baricentre
 
       /** cierra la cara lado 0 */
-      prec = addEdgeOFF(initVertices, v1, vf, index, prec);
+      prec = addEdgeOFF_VSF(initVertices, v1, vf, index, prec,point,sense);
 
       linkAlpha1(first, prec);
       linkAlpha1(alpha3(first), alpha3(prec));
