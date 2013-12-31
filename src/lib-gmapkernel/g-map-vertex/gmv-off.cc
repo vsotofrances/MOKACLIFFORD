@@ -287,14 +287,18 @@ CDart* CGMapVertex::addEdgeOFF(vector< CVertex >& AInitVertices,
  *  it would be used to create plane component of the multivector
  */
 CDart* CGMapVertex::addEdgeOFF_VSF(vector< CVertex >& AInitVertices,
-                               unsigned long int AV1, unsigned long int AV2,
-                               int AIndex, CDart* APrec,
-                               CVertex AVertex,
-                               int sense)
+                                   vector< list<CDart*> >& ATestVertices,
+                                   unsigned long int AV1, unsigned long int AV2,
+                                   int AIndex, CDart* APrec,
+                                   CVertex AVertex,
+                                   int sense)
 {
    CMultivector MVector1,MVector2,MVector3,MVector4;
 
-   MVector1=CGeometry::getMVectorPLV(AInitVertices[AV1],AInitVertices[AV2],AVertex,sense,1);
+   list<CDart*>& tmp1 = ATestVertices[AV1];
+   list<CDart*>& tmp2 = ATestVertices[AV2];
+
+   MVector1=CGeometry::getMVectorPLV(AInitVertices[AV1],AInitVertices[AV2],AVertex, sense    ,1);
    MVector2=CGeometry::getMVectorPLV(AInitVertices[AV2],AInitVertices[AV1],AVertex,(sense*-1),-1);
    CDart* dart1 = addMapDart(AInitVertices[AV1],MVector1);//! metodo en gmv-inline.icc
    CDart* dart2 = addMapDart(MVector2);
@@ -308,7 +312,7 @@ CDart* CGMapVertex::addEdgeOFF_VSF(vector< CVertex >& AInitVertices,
    //! The other pair
    //! dart3---dart4
    //! dart1---dart2
-   MVector3=CGeometry::getMVectorPLV(AInitVertices[AV1],AInitVertices[AV2],AVertex,sense,-1);
+   MVector3=CGeometry::getMVectorPLV(AInitVertices[AV1],AInitVertices[AV2],AVertex, sense    ,-1);
    MVector4=CGeometry::getMVectorPLV(AInitVertices[AV2],AInitVertices[AV1],AVertex,(sense*-1), 1);
    linkAlpha3(dart1, addMapDart(MVector3));
    linkAlpha3(dart2, addMapDart(MVector4));
@@ -318,6 +322,9 @@ CDart* CGMapVertex::addEdgeOFF_VSF(vector< CVertex >& AInitVertices,
    //! Informacion de los vertices
    setDirectInfo(alpha3(dart1), AIndex, (void*)AV1);
    setDirectInfo(alpha3(dart2), AIndex, (void*)AV2);
+
+   tmp1.push_back(dart1); //! the positive volumes are the proxies at each vertex
+   tmp2.push_back(alpha3(dart2));
 
    //! Cose alpha1 si hay anteriores
    if (APrec != NULL)
@@ -422,17 +429,28 @@ CDart* CGMapVertex::importOff3D(std::istream & AStream)
 }
 //******************************************************************************
 //! VICTOR
+/**
+ *  Compute sense of the outer polygon and correct the sense of its holes
+ *  they must have the opposite sense.
+ *  The baricentre is used as auxiliary point afterwards to associate a plane
+ *  to each dart. Therefore it should not coincide with any point of the face
+ *  it is also checked here.
+ *  (v1).....(v1) OUTER , (vi1).....(vi1) hole1 , ...
+ */
 void CGMapVertex::computeOFFSenses_VSF(vector< list<int> >& face,
                           vector< CVertex >& AInitVertices,
                           int &sense,
                           CVertex &baricentro,
                           vector< int > &faceseq)
 {
-    nklein::GeometricAlgebra< double, 4 >* Points[face.size()],B,I;
+    nklein::GeometricAlgebra< double, 4 >* Points[face.size()],B,I,Line;
     nklein::GeometricAlgebra< double, 4 > planeOuter, planeOuterD;
     nklein::GeometricAlgebra< double, 4 > planeHole, planeHoleD;
+    double tol=0.00001;
+    bool okBaricentre;
+    CVertex Vaux;
     list< int >::iterator jit;
-    int v1;
+    int v1,nPoints=0;
 
     I[e0|e1|e2|e3]=1;
 
@@ -454,17 +472,46 @@ void CGMapVertex::computeOFFSenses_VSF(vector< list<int> >& face,
             Points[i][j][e1]=AInitVertices[(*jit)].getX();
             Points[i][j][e2]=AInitVertices[(*jit)].getY();
             Points[i][j][e3]=AInitVertices[(*jit)].getZ();
-            ++j;
+            ++j;++nPoints;
         }
     }
 
     /** avoid baricentre coincidence with any point in face */
     /** but keep its "co-planarity" */
-    // TODO: VICTOR
+    int ii,jj,ik,jk;
+    int weight=0;
+    do
+    {
+        okBaricentre=true;
+        /** check okBaricentre */
+        for( ii=0;ii<face.size();ii++)
+        {
+            for( jj=0;jj<face[ii].size();++jj)
+            {
+                Line=B^Points[ii][jj];
+                if(fabs(Line[e0])<tol && fabs(Line[e1])<tol && fabs(Line[e2])<tol &&
+                        fabs(Line[e3])<tol) {okBaricentre=false; break;}//! SAME POINT!
+            }
+            if(!okBaricentre) break;
+        }
+        /** new baricentre */
+        if(!okBaricentre)
+        {
+            ik=0;jk=0;++weight;
+            if(ik==ii && jk==jj) jk=1;
+            Vaux.setXYZ(Points[ik][jk][e1],Points[ik][jk][e2],Points[ik][jk][e3]);
+            baricentro=(baricentro*((double)nPoints)+Vaux*((double)weight))/
+                       ((double)(nPoints+weight));
+            B[e0]=1;
+            B[e1]=baricentro.getX();
+            B[e2]=baricentro.getY();
+            B[e3]=baricentro.getZ();
+        }
+    }while(!okBaricentre);
 
     /** planes: (vi)....(vi) */
     // here the coplanarity could be checked
-    for(int i=0;i<face.size();i++)
+    for(int i=0; i<face.size() ;i++)
     {
         planeHole=0;
         for(int j; j<(face[i].size()-1);++j)
@@ -497,6 +544,7 @@ void CGMapVertex::computeOFFSenses_VSF(vector< list<int> >& face,
     v1=face[0].front();
     for(jit=face[0].begin(); jit != face[0].end() ;jit++)//iterate list outer
         faceseq.push_back((*jit));
+
     faceseq.pop_back();
 
     for(int i=1;i<face.size();i++)
@@ -525,7 +573,7 @@ CDart* CGMapVertex::importOff3D_VSF(std::istream & AStream)
    string txt;
    TCoordinate x, y, z;
    CDart *prec = NULL, *first = NULL;
-   unsigned int i, n,nFaceVertex,npol;
+   unsigned int i, n,nFaceVertex,npol,npoints;
    unsigned long int v1, v2, vf;
 
    AStream >> txt;
@@ -581,7 +629,7 @@ CDart* CGMapVertex::importOff3D_VSF(std::istream & AStream)
           face.clear();
       if(!facesequence.empty())
           facesequence.clear();
-      npol=0;
+      npol=0;npoints=0;
 
       /** points=> baricentre, polygons in face are classified */
       /** (v1)v2..... */
@@ -589,7 +637,7 @@ CDart* CGMapVertex::importOff3D_VSF(std::istream & AStream)
       AStream >> v1; --n;
       vf=v1;
       assert(v1 < initVertices.size());
-      point=initVertices[v1];
+      point=initVertices[v1];++npoints;
       ++npol;
       face.push_back(list<int>());
       face[npol-1].push_back(v1);
@@ -597,17 +645,22 @@ CDart* CGMapVertex::importOff3D_VSF(std::istream & AStream)
       {
           AStream >> v2;
           assert(v2 < initVertices.size());
-          point=point+initVertices[v2];
-          face[npol-1].push_back(v2);
           if(v2==v1)
           {
-              face[npol-1].pop_back();
+              //face[npol-1].pop_back();
               ++npol;face.push_back(list<int>());
+          }
+          else
+          {
+              point=point+initVertices[v2];++npoints;
+              face[npol-1].push_back(v2);
           }
       }
       face[0].push_back(v1);
-      AStream.ignore(256,'\n'); //! Ignore the end of the line.
-      point=point/nFaceVertex; //! Baricentre counts repeated points orignal sequence
+      point=point+initVertices[v1];;++npoints;
+      AStream.ignore(256,'\n'); //! Ignore the end of the line of the face.
+
+      point=point/((double)npoints); //! Baricentre counts repeated points orignal sequence
       computeOFFSenses_VSF(face,initVertices,sense,point,facesequence);
 
       /** each side : named by the starting point 0..(n-1) */
@@ -619,7 +672,7 @@ CDart* CGMapVertex::importOff3D_VSF(std::istream & AStream)
          //point=point+initVertices[v2];
          v2=facesequence[i];//! read now from the vector
 
-         prec = addEdgeOFF_VSF(initVertices, v1, v2, index, prec,point,sense);
+         prec = addEdgeOFF_VSF(initVertices,testVertices, v1, v2, index, prec,point,sense);
 
          if (first == NULL) first = alpha0(prec);
 
@@ -629,7 +682,7 @@ CDart* CGMapVertex::importOff3D_VSF(std::istream & AStream)
       //point=point/nFaceVertex; //! Baricentre
 
       /** cierra la cara lado 0 */
-      prec = addEdgeOFF_VSF(initVertices, v1, vf, index, prec,point,sense);
+      prec = addEdgeOFF_VSF(initVertices,testVertices, v1, vf, index, prec,point,sense);
 
       linkAlpha1(first, prec);
       linkAlpha1(alpha3(first), alpha3(prec));

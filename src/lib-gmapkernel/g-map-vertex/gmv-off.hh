@@ -60,6 +60,7 @@ CDart* addEdgeOFF( std::vector< CVertex >& AInitVertices,
                    int AIndex, CDart* APrec );
 //! VICTOR
 CDart* addEdgeOFF_VSF( std::vector< CVertex >& AInitVertices,
+                       std::vector< std::list<CDart*> >& ATestVertices,
                    unsigned long int AV1, unsigned long int AV2,
                    int AIndex, CDart* APrec,
                    CVertex AVertex,
