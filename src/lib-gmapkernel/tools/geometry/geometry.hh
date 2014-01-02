@@ -29,6 +29,8 @@
 #include "math-extension.hh"
 #include "vertex.hh"
 #include "multivector.h" //** VICTOR: add multivector support
+#include <vector> //** VICTOR
+#include <map> //** VICTOR
 //******************************************************************************
 
 /**
@@ -431,6 +433,26 @@ public:
                                     const CVertex& AVertex3,
                                     int sense,
                                     int VolumeOrientation);
+  struct Coord3D
+  {
+      double coord[3];
+  };
+  struct CompareCoord3D {
+      bool operator()(const Coord3D lhs, const Coord3D rhs) {
+          if(lhs.coord[0] < rhs.coord[0])
+              return true;
+          if(rhs.coord[0] < lhs.coord[0])
+              return false;
+          if(lhs.coord[1] < rhs.coord[1])
+              return true;
+          if(rhs.coord[1] < lhs.coord[1])
+              return false;
+          if(lhs.coord[2] < rhs.coord[2])
+              return true;
+          return false;
+      }
+  };
+  static void sortPencil(std::vector< nklein::GeometricAlgebra< double, 4 > > &subVector);
   // @}
 };
 //******************************************************************************

@@ -79,6 +79,9 @@ void computeOFFSenses_VSF( std::vector< std::list<int> >& face,
  */
 void linkFaceAlpha2OFF( std::vector< std::list<CDart*> >& ATestVertices,
                         int AIndex, CDart* ADart );
+//! VICTOR
+void  linkFacesAlpha2OFF_VSF(std::vector< std::list<CDart*> >& ATestVertices,
+                             int AIndex);
 
 /** 
  * @return la dimension du fichier off en lisant l'entête: 2, 3 ou -1 si erreur

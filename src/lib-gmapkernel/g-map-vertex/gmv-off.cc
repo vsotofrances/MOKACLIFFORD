@@ -136,6 +136,57 @@ void CGMapVertex::linkFaceAlpha2OFF(vector< list<CDart*> >& ATestVertices,
    while (current != ADart);
 }
 //******************************************************************************
+//! VICTOR
+void  CGMapVertex::linkFacesAlpha2OFF_VSF(vector< list<CDart*> >& ATestVertices,
+                             int AIndex)
+{
+    CDart *dart;
+    CAttributeMultivector* AMv;
+    vector<CDart*>  subVector;
+    vector< nklein::GeometricAlgebra< double, 4 > > MvVector;
+    list<CDart*>::iterator it1,it2;
+    unsigned long int v1,v2;
+
+    /** each point */
+    for( v1=0; v1 < ATestVertices.size(); ++v1)
+    {
+        list<CDart*> &List1=ATestVertices[v1];
+        subVector.clear();
+        dart=NULL;
+        for(it1=List1.begin();it1!=List1.end();++it1)//! point 1
+        {
+            /** each dart not alpha2 */
+            if((*it1)->isFree2())
+            {
+                dart=(*it1);
+                v2 = (unsigned long int)getDirectInfo(alpha0(dart), AIndex);
+                list<CDart*> &List2=ATestVertices[v2];
+                for(it2=List2.begin();it2!=List2.end();++it2)//! iterate on point2
+                {
+                    if((*it2)->isFree2())
+                    {
+                        if(v1==(unsigned long int)getDirectInfo(alpha0((*it2)), AIndex))
+                            subVector.push_back((*it2));//! darts (+) at v2=>v1
+                    }
+                }
+                /** Something to sew? */
+                if(subVector.size()>1)
+                {
+                    /** order the pencil of planes */
+                    for(int i=0;i<subVector.size();++i)
+                    {
+                        AMv=(CAttributeMultivector*) dart->getAttribute(ORBIT_SELF,ATTRIBUTE_MULTIVECTOR);
+                        MvVector.push_back(AMv->getMD());
+                    }
+                    /** sew according to the order */
+                }
+                /** nothing to do */
+            }
+        }
+    }
+}
+
+//******************************************************************************
 CDart* CGMapVertex::importOff2D(std::istream & AStream)
 {
    // Lecture des sommets à charger:
@@ -280,6 +331,7 @@ CDart* CGMapVertex::addEdgeOFF(vector< CVertex >& AInitVertices,
 
    return dart2;
 }
+//******************************************************************************
 /*! @brief Victor version
  *  A polygon with holes must be ordered: outer-hole1-..-holen
  *  outer and holes must have different orientation.
@@ -688,11 +740,13 @@ CDart* CGMapVertex::importOff3D_VSF(std::istream & AStream)
       linkAlpha1(alpha3(first), alpha3(prec));
 
       /** conecta la cara a las otras caras ya leidas */
-      linkFaceAlpha2OFF(testVertices, index, first);
+      //linkFaceAlpha2OFF(testVertices, index, first);
 
       --nbFaces;
    }
 
+      /** once all faces are read sew-alpha2 all faces to form volumes*/
+      // TODO: linkFacesAlpha2OFF_VSF()
    freeDirectInfo(index);
 
    return first;
