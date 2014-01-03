@@ -140,9 +140,10 @@ void CGMapVertex::linkFaceAlpha2OFF(vector< list<CDart*> >& ATestVertices,
 void  CGMapVertex::linkFacesAlpha2OFF_VSF(vector< list<CDart*> >& ATestVertices,
                              int AIndex)
 {
-    CDart *dart;
+    CDart *dart,*dartneighbour;
     CAttributeMultivector* AMv;
     vector<CDart*>  subVector;
+    vector< int >   order;
     vector< nklein::GeometricAlgebra< double, 4 > > MvVector;
     list<CDart*>::iterator it1,it2;
     unsigned long int v1,v2;
@@ -172,13 +173,31 @@ void  CGMapVertex::linkFacesAlpha2OFF_VSF(vector< list<CDart*> >& ATestVertices,
                 /** Something to sew? */
                 if(subVector.size()>1)
                 {
-                    /** order the pencil of planes */
-                    for(int i=0;i<subVector.size();++i)
+                    if(subVector.size()>2)
                     {
-                        AMv=(CAttributeMultivector*) dart->getAttribute(ORBIT_SELF,ATTRIBUTE_MULTIVECTOR);
-                        MvVector.push_back(AMv->getMD());
+                        /** order the pencil of planes */
+                        MvVector.clear();
+                        for(int i=0;i<subVector.size();++i)
+                        {
+                            dart=subVector[i];
+                            AMv=(CAttributeMultivector*) dart->getAttribute(ORBIT_SELF,ATTRIBUTE_MULTIVECTOR);
+                            MvVector.push_back(AMv->getMD());
+                        }
+                        CGeometry::sortPencil(MvVector,order);
+                    }
+                    else //! just 2 faces to sew, no need to order
+                    {
+                        order.clear();
+                        order.push_back(0);
+                        order.push_back(1);
                     }
                     /** sew according to the order */
+                    for(int i=0; i<order.size();++i)
+                    {
+                        dart=subVector[i];//(+)
+                        dartneighbour=subVector[((i+1)<order.size()?:(i+1),0)];//(+)
+                        sew2(dart,alpha3(dartneighbour));//(+)..(-)
+                    }
                 }
                 /** nothing to do */
             }

@@ -452,7 +452,8 @@ public:
           return false;
       }
   };
-  static void sortPencil(std::vector< nklein::GeometricAlgebra< double, 4 > > &subVector);
+  static void sortPencil(std::vector< nklein::GeometricAlgebra< double, 4 > > &subVector,
+                         std::vector< int > &order);
   // @}
 };
 //******************************************************************************
