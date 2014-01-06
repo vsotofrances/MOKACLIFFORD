@@ -152,7 +152,6 @@ void  CGMapVertex::linkFacesAlpha2OFF_VSF(vector< list<CDart*> >& ATestVertices,
     for( v1=0; v1 < ATestVertices.size(); ++v1)
     {
         list<CDart*> &List1=ATestVertices[v1];
-        subVector.clear();
         dart=NULL;
         for(it1=List1.begin();it1!=List1.end();++it1)//! point 1
         {
@@ -162,6 +161,7 @@ void  CGMapVertex::linkFacesAlpha2OFF_VSF(vector< list<CDart*> >& ATestVertices,
                 dart=(*it1);
                 v2 = (unsigned long int)getDirectInfo(alpha0(dart), AIndex);
                 list<CDart*> &List2=ATestVertices[v2];
+                subVector.clear();
                 for(it2=List2.begin();it2!=List2.end();++it2)//! iterate on point2
                 {
                     if((*it2)->isFree2())
@@ -195,7 +195,8 @@ void  CGMapVertex::linkFacesAlpha2OFF_VSF(vector< list<CDart*> >& ATestVertices,
                     for(int i=0; i<order.size();++i)
                     {
                         dart=subVector[i];//(+)
-                        dartneighbour=subVector[((i+1)<order.size()?:(i+1),0)];//(+)
+                        int j=((i+1)<order.size()?(i+1):0);
+                        dartneighbour=subVector[j];//(+)
                         sew2(dart,alpha3(dartneighbour));//(+)..(-)
                     }
                 }
@@ -560,8 +561,16 @@ void CGMapVertex::computeOFFSenses_VSF(vector< list<int> >& face,
             for( jj=0;jj<face[ii].size();++jj)
             {
                 Line=B^Points[ii][jj];
-                if(fabs(Line[e0])<tol && fabs(Line[e1])<tol && fabs(Line[e2])<tol &&
-                        fabs(Line[e3])<tol) {okBaricentre=false; break;}//! SAME POINT!
+                if(fabs(Line[e0|e1])<tol &&
+                   fabs(Line[e0|e2])<tol &&
+                   fabs(Line[e0|e3])<tol &&
+                   fabs(Line[e1|e2])<tol &&
+                   fabs(Line[e1|e3])<tol &&
+                   fabs(Line[e2|e3])<tol)
+                {
+                    okBaricentre=false;
+                    break;
+                }//! SAME POINT!
             }
             if(!okBaricentre) break;
         }
@@ -765,7 +774,8 @@ CDart* CGMapVertex::importOff3D_VSF(std::istream & AStream)
    }
 
       /** once all faces are read sew-alpha2 all faces to form volumes*/
-      // TODO: linkFacesAlpha2OFF_VSF()
+   linkFacesAlpha2OFF_VSF(testVertices,index);
+
    freeDirectInfo(index);
 
    return first;
@@ -795,7 +805,7 @@ CDart* CGMapVertex::importOff(const char * AFilename)
    switch (dim)
    {
       case 2: return importOff2D(stream); break;
-      case 3: return importOff3D(stream); break;   
+      case 3: return importOff3D_VSF(stream); break;
    }   
    return NULL;
 }

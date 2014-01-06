@@ -33,6 +33,7 @@ void CGMapVertex::empty()
   CGMap::empty();
 
   setOrbitUsed(ORBIT_VERTEX);
+  setOrbitUsed(ORBIT_SELF);//in order to be able to use such orbit
 }
 //******************************************************************************
 INLINE
@@ -131,7 +132,7 @@ INLINE
 void CGMapVertex::setMv(CDart* ADart, const CMultivector & AMv)
 {
   assert(ADart!=NULL);
-  assert(findVertex(ADart)==NULL);
+  //assert(findVertex(ADart)==NULL);//i could have a vertex
 
   addAttribute(ADart, ORBIT_SELF, new CAttributeMultivector(AMv));
 }
