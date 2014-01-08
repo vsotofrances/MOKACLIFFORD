@@ -577,10 +577,12 @@ CMultivector CGeometry::getMVectorPLV(const CVertex& AVertex1,
     Point[0][e1]=AVertex3.getX();
     Point[0][e2]=AVertex3.getY();
     Point[0][e3]=AVertex3.getZ();
+
     Point[1][e0]=1;
     Point[1][e1]=AVertex1.getX();
     Point[1][e2]=AVertex1.getY();
     Point[1][e3]=AVertex1.getZ();
+
     Point[2][e0]=1;
     Point[2][e1]=AVertex2.getX();
     Point[2][e2]=AVertex2.getY();
@@ -594,12 +596,11 @@ CMultivector CGeometry::getMVectorPLV(const CVertex& AVertex1,
 
     /** plane */
     Plane=Point[0]^Point[1]^Point[2];
-    PlaneD=Plane*I;//! dual plane vector
     if(PlaneD[0]*sense<0)//! correct sense
     {
-        Plane=Point[0]^Point[2]^Point[1];
-        PlaneD=Plane*I;
+        Plane=Point[0]^Point[2]^Point[1];//NO HACE FALTA.Orienté los aguejeros antes
     }
+    PlaneD=Plane*I;//! dual plane vector
 
     /** volume */
     VolumeD[0]=VolumeOrientation;
@@ -625,8 +626,9 @@ void CGeometry::sortPencil( std::vector< nklein::GeometricAlgebra< double, 4 > >
     std::multimap<Coord3D,int,CompareCoord3D> mmapPLUS,mmapMINUS;//double cover
     std::multimap<Coord3D,int,CompareCoord3D> mmapPLUSINF,mmapMINUSINF;
     std::multimap<Coord3D,int,CompareCoord3D>::iterator it;
-    nklein::GeometricAlgebra< double, 4 > Mv,Line,I,Plane,O,t;
-    nklein::GeometricAlgebra< double, 4 > PointD,LineD,PlaneD;
+    nklein::GeometricAlgebra< double, 4 > Mv,Point,Line,I,Plane,O,t;
+    nklein::GeometricAlgebra< double, 4 > PointD,LineD,PlaneD,dummy;
+    nklein::GeometricAlgebra< double, 4 > vector1,vector2;
     bool origin;
     int i;
     double sign,inf,volume;
@@ -636,7 +638,7 @@ void CGeometry::sortPencil( std::vector< nklein::GeometricAlgebra< double, 4 > >
     order.clear();
     I[e0|e1|e2|e3]=1.0;
     O[e0]=1.0;//O[e1]=O[e2]=O[e3]=0.0;
-    t[e1]=10.0;
+    //t[e1]=10.0;
 
     /** check that the edge-line does not go through origin */
     origin=false;
@@ -650,14 +652,41 @@ void CGeometry::sortPencil( std::vector< nklein::GeometricAlgebra< double, 4 > >
     // in the original is; T[Mv]=X+t^(e0_|X)
     if(origin)
     {
+        PlaneD=(MvVector[0]).Grade(1);Plane=PlaneD*I;
+        vector2=(O*Plane).Grade(3-1);//! direction of flat plane
+        LineD =(MvVector[0]).Grade(2);Line =LineD*I;
+        vector1=(O*Line).Grade(2-1);//! direction of flat line
+        t=(vector1*vector2).Grade(2-1);//! direction normal to line in plane
+
         for( i=0; i < MvVector.size() ; ++i)
         {
-            PlaneD=(MvVector[i]).Grade(1);
-            LineD =(MvVector[i]).Grade(2);
-            PointD=(MvVector[i]).Grade(3);
-            PlaneD=PlaneD-O^((t*PlaneD).Grade(0));
-            LineD =LineD -O^((t*LineD).Grade(1));
-            PointD=PointD-O^((t*PointD).Grade(2));
+            if(i>0)//! translate for i=0 is nonsense
+            {
+                PlaneD=(MvVector[i]).Grade(1);Plane=PlaneD*I;
+                dummy=(O*Plane).Grade(3-1);
+                dummy=t^dummy;
+                dummy=Plane+dummy;
+                dummy=dummy*I;
+                PlaneD=dummy;
+            }
+            LineD =(MvVector[i]).Grade(2);Line =LineD*I;
+            PointD=(MvVector[i]).Grade(3);Point=PointD*I;
+
+            LineD =(MvVector[0]).Grade(2);Line =LineD*I;
+            dummy=(O*Line).Grade(2-1);
+            dummy=t^dummy;
+            dummy=Line+dummy;
+            dummy=dummy*I;
+            LineD=dummy;
+
+            dummy=(O*Point).Grade(1-1);
+            dummy=t^dummy;
+            dummy=Point+dummy;
+            dummy=dummy*I;
+            PointD=dummy;
+            //PlaneD=PlaneD-O^((t*PlaneD).Grade(0));
+            //LineD =LineD -O^((t*LineD).Grade(1));
+            //PointD=PointD-O^((t*PointD).Grade(2));
             MvVector[i]=MvVector[i][0]+PlaneD+LineD+PointD;
         }
     }
@@ -719,11 +748,7 @@ void CGeometry::sortPencil( std::vector< nklein::GeometricAlgebra< double, 4 > >
     }
 
     /** compose order */
-    for(it=mmapMINUSINF.begin(); it!=mmapMINUSINF.end() ;++it)
-    {
-        order.push_back((*it).second);
-    }
-    for(it=mmapPLUS.begin(); it!=mmapPLUS.end() ;++it)
+    for(it=mmapMINUS.begin(); it!=mmapMINUS.end() ;++it)
     {
         order.push_back((*it).second);
     }
@@ -731,7 +756,11 @@ void CGeometry::sortPencil( std::vector< nklein::GeometricAlgebra< double, 4 > >
     {
         order.push_back((*it).second);
     }
-    for(it=mmapMINUS.begin(); it!=mmapMINUS.end() ;++it)
+    for(it=mmapPLUS.begin(); it!=mmapPLUS.end() ;++it)
+    {
+        order.push_back((*it).second);
+    }
+    for(it=mmapMINUSINF.begin(); it!=mmapMINUSINF.end() ;++it)
     {
         order.push_back((*it).second);
     }

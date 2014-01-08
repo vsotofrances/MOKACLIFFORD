@@ -194,9 +194,9 @@ void  CGMapVertex::linkFacesAlpha2OFF_VSF(vector< list<CDart*> >& ATestVertices,
                     /** sew according to the order */
                     for(int i=0; i<order.size();++i)
                     {
-                        dart=subVector[i];//(+)
+                        dart=subVector[order[i]];//(+)
                         int j=((i+1)<order.size()?(i+1):0);
-                        dartneighbour=subVector[j];//(+)
+                        dartneighbour=subVector[order[j]];//(+)
                         sew2(dart,alpha3(dartneighbour));//(+)..(-)
                     }
                 }
