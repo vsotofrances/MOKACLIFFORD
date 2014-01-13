@@ -171,6 +171,7 @@ void  CGMapVertex::linkFacesAlpha2OFF_VSF(vector< list<CDart*> >& ATestVertices,
                     }
                 }
                 /** Something to sew? */
+                std::cout<<v2<<"=>"<<v1<<"{"<<subVector.size()<<"}\n";
                 if(subVector.size()>1)
                 {
                     if(subVector.size()>2)
@@ -594,7 +595,7 @@ void CGMapVertex::computeOFFSenses_VSF(vector< list<int> >& face,
     for(int i=0; i<face.size() ;i++)
     {
         planeHole=0;
-        for(int j; j<(face[i].size()-1);++j)
+        for(int j=0; j<(face[i].size()-1);++j)
         {
             if(i==0)//outer
             {
