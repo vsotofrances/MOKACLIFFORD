@@ -367,7 +367,8 @@ CDart* CGMapVertex::addEdgeOFF_VSF(vector< CVertex >& AInitVertices,
                                    int sense)
 {
    CMultivector MVector1,MVector2,MVector3,MVector4;
-
+   if(AV1==AV2)
+       std::cout<<"AQUI\n";
    list<CDart*>& tmp1 = ATestVertices[AV1];
    list<CDart*>& tmp2 = ATestVertices[AV2];
 
@@ -658,7 +659,7 @@ CDart* CGMapVertex::importOff3D_VSF(std::istream & AStream)
    unsigned long int v1, v2, vf;
 
    AStream >> txt;
-   if (txt != "OFF" && txt != "OFF3D")
+   if (txt != "OFFVSF" && txt != "OFF3DVSF")
    {
       cout << "Input problem : file is not OFF format" << endl;
       return NULL;
@@ -737,7 +738,18 @@ CDart* CGMapVertex::importOff3D_VSF(std::istream & AStream)
               face[npol-1].push_back(v2);
           }
       }
+      /** fix repeted first vertex with no holes i.e 5 27 0 4 3 27 */
+      for(i=0;i< face.size();++i)
+      {
+          if(face[i].size()==0)
+          {
+              //std::cout<<"AQUI!!\n";
+              face.pop_back();
+              break;
+          }
+      }
       face[0].push_back(v1);
+
       point=point+initVertices[v1];;++npoints;
       AStream.ignore(256,'\n'); //! Ignore the end of the line of the face.
 
@@ -745,7 +757,7 @@ CDart* CGMapVertex::importOff3D_VSF(std::istream & AStream)
       computeOFFSenses_VSF(face,initVertices,sense,point,facesequence);
 
       /** each side : named by the starting point 0..(n-1) */
-      n=nFaceVertex;
+      n=facesequence.size();
       for (i = 1;i < n;++i)
       {
          //AStream >> v2;
@@ -793,6 +805,7 @@ int CGMapVertex::getOffDimension(const char * AFilename)
    
    if (txt == "OFF2D")      return 2;
    else if (txt == "OFF" || txt == "OFF3D") return 3;
+   else if (txt == "OFFVSF") return 4;
 
    return -1;
 }   
@@ -806,7 +819,8 @@ CDart* CGMapVertex::importOff(const char * AFilename)
    switch (dim)
    {
       case 2: return importOff2D(stream); break;
-      case 3: return importOff3D_VSF(stream); break;
+      case 3: return importOff3D(stream); break;
+      case 4: return importOff3D_VSF(stream); break;
    }   
    return NULL;
 }

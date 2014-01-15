@@ -433,21 +433,39 @@ public:
                                     const CVertex& AVertex3,
                                     int sense,
                                     int VolumeOrientation);
+  static double cint(double x){
+      double dummy;
+      if (modf(x,&dummy)>=.5)
+          return x>=0?ceil(x):floor(x);
+      else
+          return x<0?ceil(x):floor(x);
+  };
+  static double redondeo(double r,unsigned places){
+      double off=pow(10,places);
+      return cint(r*off)/off;
+  };
   struct Coord3D
   {
       double coord[3];
   };
   struct CompareCoord3D {
       bool operator()(const Coord3D lhs, const Coord3D rhs) {
-          if(lhs.coord[0] < rhs.coord[0])
+          unsigned dec=10;
+          double lhsx=redondeo(lhs.coord[0],dec);
+          double rhsx=redondeo(rhs.coord[0],dec);
+          double lhsy=redondeo(lhs.coord[1],dec);
+          double rhsy=redondeo(rhs.coord[1],dec);
+          double lhsz=redondeo(lhs.coord[2],dec);
+          double rhsz=redondeo(rhs.coord[2],dec);
+          if( lhsx < rhsx )
               return true;
-          if(rhs.coord[0] < lhs.coord[0])
+          if( rhsx < lhsx )
               return false;
-          if(lhs.coord[1] < rhs.coord[1])
+          if( lhsy < rhsy )
               return true;
-          if(rhs.coord[1] < lhs.coord[1])
+          if( rhsy < lhsy )
               return false;
-          if(lhs.coord[2] < rhs.coord[2])
+          if( lhsz < rhsz )
               return true;
           return false;
       }

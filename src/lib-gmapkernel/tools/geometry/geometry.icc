@@ -570,23 +570,24 @@ CMultivector CGeometry::getMVectorPLV(const CVertex& AVertex1,
     nklein::GeometricAlgebra< double, 4 > Point[3],Line,Plane,I;
     nklein::GeometricAlgebra< double, 4 > PointD,LineD,PlaneD,VolumeD;
     nklein::GeometricAlgebra< double, 4 > ResultD;
+    const double scale=1000.;
     I[e0|e1|e2|e3]=1;// I=I^{1} in R4
 
     /** point */
     Point[0][e0]=1;
-    Point[0][e1]=AVertex3.getX();
-    Point[0][e2]=AVertex3.getY();
-    Point[0][e3]=AVertex3.getZ();
+    Point[0][e1]=AVertex3.getX()*scale;
+    Point[0][e2]=AVertex3.getY()*scale;
+    Point[0][e3]=AVertex3.getZ()*scale;
 
     Point[1][e0]=1;
-    Point[1][e1]=AVertex1.getX();
-    Point[1][e2]=AVertex1.getY();
-    Point[1][e3]=AVertex1.getZ();
+    Point[1][e1]=AVertex1.getX()*scale;
+    Point[1][e2]=AVertex1.getY()*scale;
+    Point[1][e3]=AVertex1.getZ()*scale;
 
     Point[2][e0]=1;
-    Point[2][e1]=AVertex2.getX();
-    Point[2][e2]=AVertex2.getY();
-    Point[2][e3]=AVertex2.getZ();
+    Point[2][e1]=AVertex2.getX()*scale;
+    Point[2][e2]=AVertex2.getY()*scale;
+    Point[2][e3]=AVertex2.getZ()*scale;
 
     PointD=Point[1]*I;//! dual point tri-vector
 
@@ -626,13 +627,14 @@ void CGeometry::sortPencil( std::vector< nklein::GeometricAlgebra< double, 4 > >
     std::multimap<Coord3D,int,CompareCoord3D> mmapPLUS,mmapMINUS;//double cover
     std::multimap<Coord3D,int,CompareCoord3D> mmapPLUSINF,mmapMINUSINF;
     std::multimap<Coord3D,int,CompareCoord3D>::iterator it;
+    std::multimap<Coord3D,int,CompareCoord3D>::reverse_iterator rit;
     nklein::GeometricAlgebra< double, 4 > Mv,Point,Line,I,Plane,O,t;
     nklein::GeometricAlgebra< double, 4 > PointD,LineD,PlaneD,dummy;
     nklein::GeometricAlgebra< double, 4 > vector1,vector2;
     bool origin;
     int i;
     double sign,inf,xabs,reverse;
-    const double tol=0.0000001;
+    const double tol=0.0000000000000001;
 
     std::cout<<"sortPencil()\n";
     /** initialize */
@@ -725,9 +727,9 @@ void CGeometry::sortPencil( std::vector< nklein::GeometricAlgebra< double, 4 > >
         {
             sign=(Mv[e0]>0? 1:-1);//! {-1,+1}
             Mv[e0]=1;
-            p3D.coord[0]=Mv[e1]=Mv[e1]/xabs*sign*reverse;//sign:to turn always in same direction
-            p3D.coord[1]=Mv[e2]=Mv[e2]/xabs*sign*reverse;
-            p3D.coord[2]=Mv[e3]=Mv[e3]/xabs*sign*reverse;
+            p3D.coord[0]=Mv[e1]=Mv[e1]/xabs*sign;//sign:to turn always in same direction
+            p3D.coord[1]=Mv[e2]=Mv[e2]/xabs*sign;
+            p3D.coord[2]=Mv[e3]=Mv[e3]/xabs*sign;
         }
         else if( 0<xabs && xabs < tol)
         {
@@ -774,13 +776,21 @@ void CGeometry::sortPencil( std::vector< nklein::GeometricAlgebra< double, 4 > >
         std::cout << (*it).first.coord[1]<<" , ";
         std::cout << (*it).first.coord[2]<<"\n";
     }
-    for(it=mmapMINUS.begin(); it!=mmapMINUS.end() ;++it)
+    for(it=mmapMINUS.begin(); it!=mmapMINUS.end() && reverse>0 ;++it)
     {
         order.push_back((*it).second);
-        std::cout<<"MIN : ";
+        std::cout<<"MIN  : ";
         std::cout << (*it).first.coord[0]<<" , ";
         std::cout << (*it).first.coord[1]<<" , ";
         std::cout << (*it).first.coord[2]<<"\n";
+    }
+    for(rit=mmapMINUS.rbegin(); rit!=mmapMINUS.rend() && reverse<0 ;++rit)
+    {
+        order.push_back((*rit).second);
+        std::cout<<"MINr : ";
+        std::cout << (*rit).first.coord[0]<<" , ";
+        std::cout << (*rit).first.coord[1]<<" , ";
+        std::cout << (*rit).first.coord[2]<<"\n";
     }
     for(it=mmapMINUSINF.begin(); it!=mmapMINUSINF.end() ;++it)
     {
@@ -790,13 +800,21 @@ void CGeometry::sortPencil( std::vector< nklein::GeometricAlgebra< double, 4 > >
         std::cout << (*it).first.coord[1]<<" , ";
         std::cout << (*it).first.coord[2]<<"\n";
     }
-    for(it=mmapPLUS.begin(); it!=mmapPLUS.end() ;++it)
+    for(it=mmapPLUS.begin(); it!=mmapPLUS.end() && reverse>0 ;++it)
     {
         order.push_back((*it).second);
-        std::cout<<"PLUS: ";
+        std::cout<<"PLUS : ";
         std::cout << (*it).first.coord[0]<<" , ";
         std::cout << (*it).first.coord[1]<<" , ";
         std::cout << (*it).first.coord[2]<<"\n";
+    }
+    for(rit=mmapPLUS.rbegin(); rit!=mmapPLUS.rend() && reverse<0 ;++rit)
+    {
+        order.push_back((*rit).second);
+        std::cout<<"PLUSr:";
+        std::cout << (*rit).first.coord[0]<<" , ";
+        std::cout << (*rit).first.coord[1]<<" , ";
+        std::cout << (*rit).first.coord[2]<<"\n";
     }
 
 }
