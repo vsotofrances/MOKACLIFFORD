@@ -184,7 +184,7 @@ void  CGMapVertex::linkFacesAlpha2OFF_VSF(vector< list<CDart*> >& ATestVertices,
                             AMv=(CAttributeMultivector*) dart->getAttribute(ORBIT_SELF,ATTRIBUTE_MULTIVECTOR);
                             MvVector.push_back(AMv->getMD());
                         }
-                        CGeometry::sortPencil(MvVector,order);
+                        CGeometry::sortPencil2(MvVector,order);
                     }
                     else //! just 2 faces to sew, no need to order
                     {

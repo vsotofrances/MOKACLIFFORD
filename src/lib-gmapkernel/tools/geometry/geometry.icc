@@ -570,7 +570,7 @@ CMultivector CGeometry::getMVectorPLV(const CVertex& AVertex1,
     nklein::GeometricAlgebra< double, 4 > Point[3],Line,Plane,I;
     nklein::GeometricAlgebra< double, 4 > PointD,LineD,PlaneD,VolumeD;
     nklein::GeometricAlgebra< double, 4 > ResultD;
-    const double scale=1000.;
+    const double scale=1.;
     I[e0|e1|e2|e3]=1;// I=I^{1} in R4
 
     /** point */
@@ -817,4 +817,187 @@ void CGeometry::sortPencil( std::vector< nklein::GeometricAlgebra< double, 4 > >
         std::cout << (*rit).first.coord[2]<<"\n";
     }
 
+}
+//******************************************************************************
+//! VICTOR
+/*!
+ *  Point= e123 => dual point at origin (gives the orientation to the point)
+ *  Point= e123+x e320 + y e130+ ze210 => point at (x,y,z)
+ *  Line=Line0+LineInf; Line0=e23+e13+e12 , LineInf= e10+e20+e30
+ *  Line0 => line through origin, LineInf => shift from origin
+ */
+void CGeometry::sortPencil2( std::vector< nklein::GeometricAlgebra< double, 4 > > &MvVector,
+                            std::vector< int > &order)
+{
+    Coord3D p3D;
+    std::map<long64,int> mapPLUS,mapMINUS;//double cover
+    std::map<long64,int> mapPLUSINF,mapMINUSINF;
+    std::map<long64,int>::iterator it;
+    std::map<long64,int>::reverse_iterator rit;
+    nklein::GeometricAlgebra< double, 4 > Mv,Point,Line,I,Plane,O,t;
+    nklein::GeometricAlgebra< double, 4 > PointD,LineD,PlaneD,dummy;
+    nklein::GeometricAlgebra< double, 4 > vector1,vector2;
+    bool origin;
+    int i;
+    double sign,inf,xabs,reverse;
+    const double tol=0.0000000000000001;
+
+    std::cout<<"sortPencil()\n";
+    /** initialize */
+    order.clear();
+    I[e0|e1|e2|e3]=1.0;
+    O[e0]=1.0;//O[e1]=O[e2]=O[e3]=0.0;
+    //t[e1]=10.0;
+
+    /** check that the edge-line does not go through origin */
+    origin=false;
+    LineD=(MvVector[0]).Grade(2);
+    if(LineD[e0|e1]==0 && LineD[e0|e2]==0 && LineD[e0|e3]==0)
+        origin=true;
+
+    /** Translate if necessary */
+    // X is the flat
+    // translate multivectors T[Mv]*=(T[Mv])*=X*-e0^(t_|X*) in the dual
+    // in the original is; T[Mv]=X+t^(e0_|X)
+    if(origin)
+    {
+        PlaneD=(MvVector[0]).Grade(1);Plane=PlaneD*I;
+        vector2=(O*Plane).Grade(3-1);//! direction of flat plane
+        LineD =(MvVector[0]).Grade(2);Line =LineD*I;
+        vector1=(O*Line).Grade(2-1);//! direction of flat line
+        t=(vector1*vector2).Grade(2-1);//! direction normal to line in plane
+        std::cout<<"t="<< t[e1]<<","<<t[e2]<<","<<t[e3]<<"\n";
+
+        for( i=0; i < MvVector.size() ; ++i)
+        {
+            if(i>0)//! translate for i=0 is nonsense
+            {
+                PlaneD=(MvVector[i]).Grade(1);Plane=PlaneD*I;
+                dummy=(O*Plane).Grade(3-1);
+                dummy=t^dummy;
+                dummy=Plane+dummy;
+                dummy=dummy*I;
+                PlaneD=dummy;
+            }
+            LineD =(MvVector[i]).Grade(2);Line =LineD*I;
+            PointD=(MvVector[i]).Grade(3);Point=PointD*I;
+
+            dummy=(O*Line).Grade(2-1);
+            dummy=t^dummy;
+            dummy=Line+dummy;
+            dummy=dummy*I;
+            LineD=dummy;
+
+            dummy=(O*Point).Grade(1-1);
+            dummy=t^dummy;
+            dummy=Point+dummy;
+            dummy=dummy*I;
+            PointD=dummy;
+            //PlaneD=PlaneD-O^((t*PlaneD).Grade(0));
+            //LineD =LineD -O^((t*LineD).Grade(1));
+            //PointD=PointD-O^((t*PointD).Grade(2));
+            MvVector[i]=MvVector[i][0]+PlaneD+LineD+PointD;
+        }
+    }
+
+    /** at this point v2=>v1 not through origin */
+
+    /** get the negative side branch */
+    /** search the direction from -INF to +INF*/
+    /** reverse help to make ordering quicker using mmaps*/
+    reverse=1;
+    LineD=MvVector[0].Grade(2);
+    Line=LineD*I;
+    Plane=Line^O;
+    PlaneD=Plane*I; // points to the negative branch
+    PlaneD[e1]*=-1;
+    PlaneD[e2]*=-1;
+    PlaneD[e3]*=-1;
+    std::cout<< "+ Sense="<<PlaneD[e1]<<","<<PlaneD[e2]<<","<<PlaneD[e3]<<"\n";
+
+    for( i=0; i < MvVector.size() ; ++i)
+    {
+        Mv=MvVector[i].Grade(1);//! plane in dual space
+        xabs=fabs(Mv[e0]);
+        if(xabs>tol)//to avoid dividing by a very small number
+        {
+            sign=(Mv[e0]>0? 1:-1);//! {-1,+1}
+            Mv[e0]=1;
+            p3D.coord[0]=Mv[e1]=Mv[e1]/xabs*sign;//sign:to turn always in same direction
+            p3D.coord[1]=Mv[e2]=Mv[e2]/xabs*sign;
+            p3D.coord[2]=Mv[e3]=Mv[e3]/xabs*sign;
+        }
+        else if( 0<xabs && xabs < tol)
+        {
+            sign=(Mv[e0]>0? -1:+1);//! {-1,+1},since PlaneD points to the negative branch
+            Mv[e0]=0.0;
+            p3D.coord[0]=Mv[e1]=PlaneD[e1]*sign;
+            p3D.coord[1]=Mv[e2]=PlaneD[e2]*sign;
+            p3D.coord[2]=Mv[e3]=PlaneD[e3]*sign;
+            sign=0;
+        }
+        else //xabs==0
+        {
+            p3D.coord[0]=Mv[e1];
+            p3D.coord[1]=Mv[e2];
+            p3D.coord[2]=Mv[e3];
+            sign=0;
+        }
+
+
+        long64 xl;
+        if( sign>0 )
+        {
+            xl=(long64) (PlaneD*Mv)[0];
+            mapPLUS.insert(std::pair<long64,int>(xl,i));//check que no se repite
+        }
+        else if( sign<0 )
+        {
+            xl=(long64) (PlaneD*Mv)[0];
+            mapMINUS.insert(std::pair<long64,int>(xl,i));//check que no se repite
+        }
+        else //! sign==0: plane through origin.Point at infinity (+) or (-)
+        {
+            inf=(Mv*PlaneD)[0];//escalar product
+            if( inf>0 ) //+ branch
+                mapPLUSINF.insert(std::pair<long64,int>(xl,i));//solo debe haber 1 como max
+            else
+                mapMINUSINF.insert(std::pair<long64,int>(xl,i));//solo debe haber 1 como max
+        }
+    }
+
+    /** compose order */
+    /** +INF,MINUS,-INF,PLUS */
+    for(it=mapPLUSINF.begin(); it!=mapPLUSINF.end() ;++it)
+    {
+        order.push_back((*it).second);
+        std::cout<<"+INF: "<<(*it).first<<" ";
+        std::cout << MvVector[(*it).second][e1]<<" , ";
+        std::cout << MvVector[(*it).second][e2]<<" , ";
+        std::cout << MvVector[(*it).second][e3]<<"\n";
+    }
+    for(it=mapMINUS.begin(); it!=mapMINUS.end() ;++it)
+    {
+        order.push_back((*it).second);
+        std::cout<<"MIN  : "<<(*it).first<<" ";
+        std::cout << MvVector[(*it).second][e1]<<" , ";
+        std::cout << MvVector[(*it).second][e2]<<" , ";
+        std::cout << MvVector[(*it).second][e3]<<"\n";
+    }
+    for(it=mapMINUSINF.begin(); it!=mapMINUSINF.end() ;++it)
+    {
+        order.push_back((*it).second);
+        std::cout<<"-INF: "<<(*it).first<<" ";
+        std::cout << MvVector[(*it).second][e1]<<" , ";
+        std::cout << MvVector[(*it).second][e2]<<" , ";
+        std::cout << MvVector[(*it).second][e3]<<"\n";
+    }
+    for(it=mapPLUS.begin(); it!=mapPLUS.end() ;++it)
+    {
+        order.push_back((*it).second);
+        std::cout<<"PLUS : "<<(*it).first<<" ";
+        std::cout << MvVector[(*it).second][e1]<<" , ";
+        std::cout << MvVector[(*it).second][e2]<<" , ";
+        std::cout << MvVector[(*it).second][e3]<<"\n";
+    }
 }
