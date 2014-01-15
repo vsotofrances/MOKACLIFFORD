@@ -829,17 +829,17 @@ void CGeometry::sortPencil( std::vector< nklein::GeometricAlgebra< double, 4 > >
 void CGeometry::sortPencil2( std::vector< nklein::GeometricAlgebra< double, 4 > > &MvVector,
                             std::vector< int > &order)
 {
+    typedef double long64;
     Coord3D p3D;
     std::map<long64,int> mapPLUS,mapMINUS;//double cover
     std::map<long64,int> mapPLUSINF,mapMINUSINF;
     std::map<long64,int>::iterator it;
-    std::map<long64,int>::reverse_iterator rit;
     nklein::GeometricAlgebra< double, 4 > Mv,Point,Line,I,Plane,O,t;
     nklein::GeometricAlgebra< double, 4 > PointD,LineD,PlaneD,dummy;
     nklein::GeometricAlgebra< double, 4 > vector1,vector2;
     bool origin;
     int i;
-    double sign,inf,xabs,reverse;
+    double sign,inf,xabs;
     const double tol=0.0000000000000001;
 
     std::cout<<"sortPencil()\n";
@@ -905,7 +905,6 @@ void CGeometry::sortPencil2( std::vector< nklein::GeometricAlgebra< double, 4 > 
     /** get the negative side branch */
     /** search the direction from -INF to +INF*/
     /** reverse help to make ordering quicker using mmaps*/
-    reverse=1;
     LineD=MvVector[0].Grade(2);
     Line=LineD*I;
     Plane=Line^O;
@@ -927,42 +926,49 @@ void CGeometry::sortPencil2( std::vector< nklein::GeometricAlgebra< double, 4 > 
             p3D.coord[1]=Mv[e2]=Mv[e2]/xabs*sign;
             p3D.coord[2]=Mv[e3]=Mv[e3]/xabs*sign;
         }
-        else if( 0<xabs && xabs < tol)
+        else
         {
-            sign=(Mv[e0]>0? -1:+1);//! {-1,+1},since PlaneD points to the negative branch
-            Mv[e0]=0.0;
-            p3D.coord[0]=Mv[e1]=PlaneD[e1]*sign;
-            p3D.coord[1]=Mv[e2]=PlaneD[e2]*sign;
-            p3D.coord[2]=Mv[e3]=PlaneD[e3]*sign;
             sign=0;
         }
-        else //xabs==0
-        {
-            p3D.coord[0]=Mv[e1];
-            p3D.coord[1]=Mv[e2];
-            p3D.coord[2]=Mv[e3];
-            sign=0;
-        }
+//        else if( 0<xabs && xabs < tol)
+//        {
+//            sign=(Mv[e0]>0? 1:-1);//! {-1,+1},since PlaneD points to the + branch
+//            Mv[e0]=0.0;
+//            p3D.coord[0]=Mv[e1]=PlaneD[e1]*sign;
+//            p3D.coord[1]=Mv[e2]=PlaneD[e2]*sign;
+//            p3D.coord[2]=Mv[e3]=PlaneD[e3]*sign;
+//            sign=0;
+//        }
+//        else //xabs==0
+//        {
+//            p3D.coord[0]=Mv[e1];
+//            p3D.coord[1]=Mv[e2];
+//            p3D.coord[2]=Mv[e3];
+//            sign=0;
+//        }
 
 
         long64 xl;
+        long64 escala=1;
         if( sign>0 )
         {
             xl=(long64) (PlaneD*Mv)[0];
+            xl*=escala;
             mapPLUS.insert(std::pair<long64,int>(xl,i));//check que no se repite
         }
         else if( sign<0 )
         {
             xl=(long64) (PlaneD*Mv)[0];
+            xl*=escala;
             mapMINUS.insert(std::pair<long64,int>(xl,i));//check que no se repite
         }
         else //! sign==0: plane through origin.Point at infinity (+) or (-)
         {
-            inf=(Mv*PlaneD)[0];//escalar product
+            inf=(PlaneD*Mv)[0];//escalar product
             if( inf>0 ) //+ branch
-                mapPLUSINF.insert(std::pair<long64,int>(xl,i));//solo debe haber 1 como max
+                mapPLUSINF.insert(std::pair<long64,int>(inf,i));//solo debe haber 1 como max
             else
-                mapMINUSINF.insert(std::pair<long64,int>(xl,i));//solo debe haber 1 como max
+                mapMINUSINF.insert(std::pair<long64,int>(inf,i));//solo debe haber 1 como max
         }
     }
 
@@ -971,7 +977,7 @@ void CGeometry::sortPencil2( std::vector< nklein::GeometricAlgebra< double, 4 > 
     for(it=mapPLUSINF.begin(); it!=mapPLUSINF.end() ;++it)
     {
         order.push_back((*it).second);
-        std::cout<<"+INF: "<<(*it).first<<" ";
+        std::cout<<"+INF: "<<(*it).first<<":";
         std::cout << MvVector[(*it).second][e1]<<" , ";
         std::cout << MvVector[(*it).second][e2]<<" , ";
         std::cout << MvVector[(*it).second][e3]<<"\n";
@@ -979,7 +985,7 @@ void CGeometry::sortPencil2( std::vector< nklein::GeometricAlgebra< double, 4 > 
     for(it=mapMINUS.begin(); it!=mapMINUS.end() ;++it)
     {
         order.push_back((*it).second);
-        std::cout<<"MIN  : "<<(*it).first<<" ";
+        std::cout<<"MIN  : "<<(*it).first<<":";
         std::cout << MvVector[(*it).second][e1]<<" , ";
         std::cout << MvVector[(*it).second][e2]<<" , ";
         std::cout << MvVector[(*it).second][e3]<<"\n";
@@ -987,7 +993,7 @@ void CGeometry::sortPencil2( std::vector< nklein::GeometricAlgebra< double, 4 > 
     for(it=mapMINUSINF.begin(); it!=mapMINUSINF.end() ;++it)
     {
         order.push_back((*it).second);
-        std::cout<<"-INF: "<<(*it).first<<" ";
+        std::cout<<"-INF: "<<(*it).first<<":";
         std::cout << MvVector[(*it).second][e1]<<" , ";
         std::cout << MvVector[(*it).second][e2]<<" , ";
         std::cout << MvVector[(*it).second][e3]<<"\n";
@@ -995,7 +1001,7 @@ void CGeometry::sortPencil2( std::vector< nklein::GeometricAlgebra< double, 4 > 
     for(it=mapPLUS.begin(); it!=mapPLUS.end() ;++it)
     {
         order.push_back((*it).second);
-        std::cout<<"PLUS : "<<(*it).first<<" ";
+        std::cout<<"PLUS : "<<(*it).first<<":";
         std::cout << MvVector[(*it).second][e1]<<" , ";
         std::cout << MvVector[(*it).second][e2]<<" , ";
         std::cout << MvVector[(*it).second][e3]<<"\n";

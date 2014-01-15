@@ -470,7 +470,7 @@ public:
           return false;
       }
   };
-  typedef signed long long long64;
+  //typedef signed long long long64;
   static void sortPencil(std::vector< nklein::GeometricAlgebra< double, 4 > > &subVector,
                          std::vector< int > &order);
   static void sortPencil2(std::vector< nklein::GeometricAlgebra< double, 4 > > &subVector,
