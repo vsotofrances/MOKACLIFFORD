@@ -559,7 +559,8 @@ CVertex CGeometry::getRoundingNormalVector(const CVertex& AVertex1,
  *  line =V1^V2
  *  plane=V3^V1^V2 (must have the sense imposed by @param sense)
  */
-CMultivector CGeometry::getMVectorPLV(const CVertex& AVertex1,
+CMultivector CGeometry::getMVectorPLV(nklein::GeometricAlgebra< double,4 > &faceplane,
+                                      const CVertex& AVertex1,
                                       const CVertex& AVertex2,
                                       const CVertex& AVertex3,
                                       int sense,
@@ -597,11 +598,13 @@ CMultivector CGeometry::getMVectorPLV(const CVertex& AVertex1,
 
     /** plane */
     Plane=Point[0]^Point[1]^Point[2];
-    if(PlaneD[0]*sense<0)//! correct sense
-    {
-        Plane=Point[0]^Point[2]^Point[1];//NO HACE FALTA.Orienté los aguejeros antes
-    }
     PlaneD=Plane*I;//! dual plane vector
+    if(cmpPlaneSense(PlaneD,faceplane)*sense<0)//! the senses are opposite:correct
+    {
+        Plane=Point[0]^Point[2]^Point[1];//SI HACE FALTA se aplica a todo (aunque los agujeros los corregí)
+        PlaneD=Plane*I;//! dual plane vector
+    }
+
 
     /** volume */
     VolumeD[0]=VolumeOrientation;
@@ -612,6 +615,57 @@ CMultivector CGeometry::getMVectorPLV(const CVertex& AVertex1,
     MVector.setMD(ResultD);
     return MVector;
 }
+//! VICTOR
+/*!
+ * Takes two planes in dual projective representation and compares their orientation
+ * @return in {-1,+1,99}, opposite, same. NOT SAME PLANE (norm infinite)
+ */
+//******************************************************************************
+int CGeometry::cmpPlaneSense(nklein::GeometricAlgebra< double, 4> &planeD1,
+                  nklein::GeometricAlgebra< double, 4> &planeD2)
+{
+    nklein::GeometricAlgebra< double, 4 > planeD1h,planeD2h;
+    double xx,max=0;
+    const double TOL=0.0001;
+
+    /*! Check if same plane */
+    //OJO: mirar a ver si es proximo a cero
+    if(planeD1[e1]!=0 && planeD2[e1]!=0)//! homogenize
+    {
+        xx=planeD1[e0];
+        planeD1h[e0]=1.;
+        planeD1h[e1]=planeD1[e1]/xx;
+        planeD1h[e2]=planeD1[e2]/xx;
+        planeD1h[e3]=planeD1[e3]/xx;
+        xx=planeD2[e0];
+        planeD2h[e0]=1.;
+        planeD2h[e1]=planeD2[e1]/xx;
+        planeD2h[e2]=planeD2[e2]/xx;
+        planeD2h[e3]=planeD2[e3]/xx;
+    }
+    xx=fabs(planeD1h[e0]-planeD2h[e0]); if( xx>max) max=xx;
+    xx=fabs(planeD1h[e1]-planeD2h[e1]); if( xx>max) max=xx;
+    xx=fabs(planeD1h[e2]-planeD2h[e2]); if( xx>max) max=xx;
+    xx=fabs(planeD1h[e3]-planeD2h[e3]); if( xx>max) max=xx;
+    if (xx > TOL)
+        return 99;
+
+    /*! comparison */
+    /*! no passing through origin e0 != 0*/
+    if( planeD1[e0]!=0)//the other must be also !=0 here
+    {
+        if( planeD1[e0]*planeD2[e0]>0 )
+            return 1;
+        else
+            return -1;
+    }
+    /*! passing through origin */
+    if( (planeD1*planeD2)[0] > 0)
+        return 1;
+    else
+        return -1;
+}
+
 //******************************************************************************
 //! VICTOR
 /*!
@@ -950,34 +1004,36 @@ void CGeometry::sortPencil2( std::vector< nklein::GeometricAlgebra< double, 4 > 
 
         long64 xl;
         long64 escala=1;
+        //xl=(long64) (PlaneD*Mv)[0];
+        xl=PlaneD[e1]*Mv[e1]+PlaneD[e2]*Mv[e2]+PlaneD[e3]*Mv[e3];
+        xl*=escala;
         if( sign>0 )
         {
-            xl=(long64) (PlaneD*Mv)[0];
-            xl*=escala;
             mapPLUS.insert(std::pair<long64,int>(xl,i));//check que no se repite
         }
         else if( sign<0 )
         {
-            xl=(long64) (PlaneD*Mv)[0];
-            xl*=escala;
             mapMINUS.insert(std::pair<long64,int>(xl,i));//check que no se repite
         }
         else //! sign==0: plane through origin.Point at infinity (+) or (-)
         {
-            inf=(PlaneD*Mv)[0];//escalar product
-            if( inf>0 ) //+ branch
-                mapPLUSINF.insert(std::pair<long64,int>(inf,i));//solo debe haber 1 como max
+            if( xl>0 ) //+ branch
+                mapPLUSINF.insert(std::pair<long64,int>(xl,i));//solo debe haber 1 como max
             else
-                mapMINUSINF.insert(std::pair<long64,int>(inf,i));//solo debe haber 1 como max
+                mapMINUSINF.insert(std::pair<long64,int>(xl,i));//solo debe haber 1 como max
         }
     }
+
+    if(mapPLUSINF.size()>1 || mapMINUSINF.size()>1)
+        std::cout<< "AQUI\n";
 
     /** compose order */
     /** +INF,MINUS,-INF,PLUS */
     for(it=mapPLUSINF.begin(); it!=mapPLUSINF.end() ;++it)
     {
         order.push_back((*it).second);
-        std::cout<<"+INF: "<<(*it).first<<":";
+        std::cout<<"+INF: "<<(*it).first<<"\t:";
+        std::cout << MvVector[(*it).second][e0]<<" , ";
         std::cout << MvVector[(*it).second][e1]<<" , ";
         std::cout << MvVector[(*it).second][e2]<<" , ";
         std::cout << MvVector[(*it).second][e3]<<"\n";
@@ -985,15 +1041,18 @@ void CGeometry::sortPencil2( std::vector< nklein::GeometricAlgebra< double, 4 > 
     for(it=mapMINUS.begin(); it!=mapMINUS.end() ;++it)
     {
         order.push_back((*it).second);
-        std::cout<<"MIN  : "<<(*it).first<<":";
-        std::cout << MvVector[(*it).second][e1]<<" , ";
-        std::cout << MvVector[(*it).second][e2]<<" , ";
-        std::cout << MvVector[(*it).second][e3]<<"\n";
+        std::cout<<"MIN  : "<<(*it).first<<"("<<(*it).second<<")\t:";
+        std::cout << MvVector[(*it).second][0]<<" + ";
+        std::cout << MvVector[(*it).second][e0]<<" e0, ";
+        std::cout << MvVector[(*it).second][e1]/MvVector[(*it).second][e0]<<" e1/e0, ";
+        std::cout << MvVector[(*it).second][e2]/MvVector[(*it).second][e0]<<" e2/e0, ";
+        std::cout << MvVector[(*it).second][e3]/MvVector[(*it).second][e0]<<" e3/e0\n";
     }
     for(it=mapMINUSINF.begin(); it!=mapMINUSINF.end() ;++it)
     {
         order.push_back((*it).second);
-        std::cout<<"-INF: "<<(*it).first<<":";
+        std::cout<<"-INF: "<<(*it).first<<"\t:";
+        std::cout << MvVector[(*it).second][e0]<<" , ";
         std::cout << MvVector[(*it).second][e1]<<" , ";
         std::cout << MvVector[(*it).second][e2]<<" , ";
         std::cout << MvVector[(*it).second][e3]<<"\n";
@@ -1001,9 +1060,11 @@ void CGeometry::sortPencil2( std::vector< nklein::GeometricAlgebra< double, 4 > 
     for(it=mapPLUS.begin(); it!=mapPLUS.end() ;++it)
     {
         order.push_back((*it).second);
-        std::cout<<"PLUS : "<<(*it).first<<":";
-        std::cout << MvVector[(*it).second][e1]<<" , ";
-        std::cout << MvVector[(*it).second][e2]<<" , ";
-        std::cout << MvVector[(*it).second][e3]<<"\n";
+        std::cout<<"PLUS : "<<(*it).first<<"("<<(*it).second<<")\t:";
+        std::cout << MvVector[(*it).second][0]<<" + ";
+        std::cout << MvVector[(*it).second][e0]<<" e0, ";
+        std::cout << MvVector[(*it).second][e1]/MvVector[(*it).second][e0]<<" e1/e0, ";
+        std::cout << MvVector[(*it).second][e2]/MvVector[(*it).second][e0]<<" e2/e0, ";
+        std::cout << MvVector[(*it).second][e3]/MvVector[(*it).second][e0]<<" e3/e0\n";
     }
 }

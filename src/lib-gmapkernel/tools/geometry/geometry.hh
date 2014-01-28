@@ -428,11 +428,13 @@ public:
    * @param AVertex1==>AVertex2,VolumenOrientation two values (-1,+1)
    * @return Dual multivector representation; Point,Line,Volume (PLV)
    */
-  static CMultivector getMVectorPLV(const CVertex& AVertex1,
+  static CMultivector getMVectorPLV(nklein::GeometricAlgebra< double,4 > &faceplane,
+                                    const CVertex& AVertex1,
                                     const CVertex& AVertex2,
                                     const CVertex& AVertex3,
                                     int sense,
                                     int VolumeOrientation);
+  //--used in sortpencil()
   static double cint(double x){
       double dummy;
       if (modf(x,&dummy)>=.5)
@@ -470,7 +472,10 @@ public:
           return false;
       }
   };
+  //--sortpencil
   //typedef signed long long long64;
+  static int cmpPlaneSense(nklein::GeometricAlgebra< double, 4> &planeD1,
+                           nklein::GeometricAlgebra< double, 4> &planeD2);
   static void sortPencil(std::vector< nklein::GeometricAlgebra< double, 4 > > &subVector,
                          std::vector< int > &order);
   static void sortPencil2(std::vector< nklein::GeometricAlgebra< double, 4 > > &subVector,

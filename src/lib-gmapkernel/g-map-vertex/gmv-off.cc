@@ -364,7 +364,7 @@ CDart* CGMapVertex::addEdgeOFF_VSF(vector< CVertex >& AInitVertices,
                                    unsigned long int AV1, unsigned long int AV2,
                                    int AIndex, CDart* APrec,
                                    CVertex AVertex,
-                                   int sense)
+                                   nklein::GeometricAlgebra< double,4 > &faceplane)
 {
    CMultivector MVector1,MVector2,MVector3,MVector4;
    if(AV1==AV2)
@@ -372,8 +372,8 @@ CDart* CGMapVertex::addEdgeOFF_VSF(vector< CVertex >& AInitVertices,
    list<CDart*>& tmp1 = ATestVertices[AV1];
    list<CDart*>& tmp2 = ATestVertices[AV2];
 
-   MVector1=CGeometry::getMVectorPLV(AInitVertices[AV1],AInitVertices[AV2],AVertex, sense    ,1);
-   MVector2=CGeometry::getMVectorPLV(AInitVertices[AV2],AInitVertices[AV1],AVertex,(sense*-1),-1);
+   MVector1=CGeometry::getMVectorPLV(faceplane,AInitVertices[AV1],AInitVertices[AV2],AVertex, 1, 1);
+   MVector2=CGeometry::getMVectorPLV(faceplane,AInitVertices[AV2],AInitVertices[AV1],AVertex,-1,-1);
    CDart* dart1 = addMapDart(AInitVertices[AV1],MVector1);//! metodo en gmv-inline.icc
    CDart* dart2 = addMapDart(MVector2);
 
@@ -386,8 +386,8 @@ CDart* CGMapVertex::addEdgeOFF_VSF(vector< CVertex >& AInitVertices,
    //! The other pair
    //! dart3---dart4
    //! dart1---dart2
-   MVector3=CGeometry::getMVectorPLV(AInitVertices[AV1],AInitVertices[AV2],AVertex, sense    ,-1);
-   MVector4=CGeometry::getMVectorPLV(AInitVertices[AV2],AInitVertices[AV1],AVertex,(sense*-1), 1);
+   MVector3=CGeometry::getMVectorPLV(faceplane,AInitVertices[AV1],AInitVertices[AV2],AVertex, 1,-1);
+   MVector4=CGeometry::getMVectorPLV(faceplane,AInitVertices[AV2],AInitVertices[AV1],AVertex,-1, 1);
    linkAlpha3(dart1, addMapDart(MVector3));
    linkAlpha3(dart2, addMapDart(MVector4));
 
@@ -513,7 +513,7 @@ CDart* CGMapVertex::importOff3D(std::istream & AStream)
  */
 void CGMapVertex::computeOFFSenses_VSF(vector< list<int> >& face,
                           vector< CVertex >& AInitVertices,
-                          int &sense,
+                          nklein::GeometricAlgebra< double,4 > &faceplane,
                           CVertex &baricentro,
                           vector< int > &faceseq)
 {
@@ -610,14 +610,23 @@ void CGMapVertex::computeOFFSenses_VSF(vector< list<int> >& face,
 
         if(i==0)
         {
+//            planeOuterD=planeOuter*I;
+//            if(planeOuterD[e1]>0)
+//                sense=1;
+//            else if(planeOuterD[e1]<0)
+//                sense=-1;
+//            else
+//                sense=0; //OJO hay que manejar esto de otro modo
             planeOuterD=planeOuter*I;
-            sense=planeOuterD[0]>0?:1,-1;
+            faceplane=planeOuterD;
         }
-        else
+        else /** outer and hole same sense => reverse */
         {
             planeHoleD=planeHole*I;
-            if((planeOuterD*planeHoleD)[0]>0) /** same sense=> reverse */
-                face[i].reverse();
+//            if((planeOuterD[e0]*planeHoleD[e0])>0) //OJO:usar funcion cmpPlaneSense()
+//                face[i].reverse();
+            if( CGeometry::cmpPlaneSense(planeOuterD,planeHoleD)==1)
+                  face[i].reverse();
         }
     }
 
@@ -648,6 +657,7 @@ CDart* CGMapVertex::importOff3D_VSF(std::istream & AStream)
    vector< CVertex > initVertices;
    vector< list<CDart*> > testVertices;
    vector< list<int> > face;
+   nklein::GeometricAlgebra< double, 4 > planeD;
    vector < int > facesequence;
    int sense;
    CVertex point;
@@ -754,7 +764,7 @@ CDart* CGMapVertex::importOff3D_VSF(std::istream & AStream)
       AStream.ignore(256,'\n'); //! Ignore the end of the line of the face.
 
       point=point/((double)npoints); //! Baricentre counts repeated points orignal sequence
-      computeOFFSenses_VSF(face,initVertices,sense,point,facesequence);
+      computeOFFSenses_VSF(face,initVertices,planeD,point,facesequence);
 
       /** each side : named by the starting point 0..(n-1) */
       n=facesequence.size();
@@ -765,7 +775,7 @@ CDart* CGMapVertex::importOff3D_VSF(std::istream & AStream)
          //point=point+initVertices[v2];
          v2=facesequence[i];//! read now from the vector
 
-         prec = addEdgeOFF_VSF(initVertices,testVertices, v1, v2, index, prec,point,sense);
+         prec = addEdgeOFF_VSF(initVertices,testVertices, v1, v2, index, prec,point,planeD);
 
          if (first == NULL) first = alpha0(prec);
 
@@ -775,7 +785,7 @@ CDart* CGMapVertex::importOff3D_VSF(std::istream & AStream)
       //point=point/nFaceVertex; //! Baricentre
 
       /** cierra la cara lado 0 */
-      prec = addEdgeOFF_VSF(initVertices,testVertices, v1, vf, index, prec,point,sense);
+      prec = addEdgeOFF_VSF(initVertices,testVertices, v1, vf, index, prec,point,planeD);
 
       linkAlpha1(first, prec);
       linkAlpha1(alpha3(first), alpha3(prec));

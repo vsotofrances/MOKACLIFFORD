@@ -64,11 +64,11 @@ CDart* addEdgeOFF_VSF( std::vector< CVertex >& AInitVertices,
                    unsigned long int AV1, unsigned long int AV2,
                    int AIndex, CDart* APrec,
                    CVertex AVertex,
-                   int sense);
+                   nklein::GeometricAlgebra< double,4 > &faceplane);
 //! VICTOR
 void computeOFFSenses_VSF( std::vector< std::list<int> >& face,
                            std::vector< CVertex >& AInitVertices,
-                           int &sense,
+                           nklein::GeometricAlgebra< double,4 > &faceplane,
                            CVertex &baricentro,
                            std::vector< int > &faceseq);
 /**
