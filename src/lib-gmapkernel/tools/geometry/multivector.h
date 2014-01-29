@@ -33,6 +33,7 @@ class CMultivector
 {
 private:
     nklein::GeometricAlgebra< double, 4 > MD; //homogeneus model
+    double l,a,v; //! length,area,volume
 public:
     /** Get */
     nklein::GeometricAlgebra< double, 4 > getMD() const;
@@ -50,7 +51,7 @@ public:
     CMultivector(const CDart *,CVertex *AVertex=NULL);
 
 private:
-    int getSense(const CDart *);
+    double computeLAV(void);
     nklein::GeometricAlgebra<double, 4 >  getPoint(const CDart * dart);
 
 };
