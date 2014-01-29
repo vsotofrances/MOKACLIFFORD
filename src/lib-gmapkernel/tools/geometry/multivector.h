@@ -33,13 +33,6 @@ class CMultivector
 {
 private:
     nklein::GeometricAlgebra< double, 4 > MD; //homogeneus model
-    nklein::GeometricAlgebra< double, 4 > P ,L ; //homogeneus model
-    nklein::GeometricAlgebra< double, 4 > PD,LD; //homogeneus dual model
-    static nklein::GeometricAlgebra< double, 4 > A,AD; //homogeneus dual model
-    nklein::GeometricAlgebra< double, 4 > Ih; // pseudoescalar homogeneus model
-    nklein::GeometricAlgebra<double, 4 > B; //Baricentre
-    const CDart * refdart; // reference dart
-    int sense;
 public:
     /** Get */
     nklein::GeometricAlgebra< double, 4 > getMD() const;
