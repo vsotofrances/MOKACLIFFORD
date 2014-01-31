@@ -1323,6 +1323,45 @@ void Window::callbackComputeVolumicHomology()
   repaint();
 }
 
+void Window::callbackComputeLAV() //! VSF
+{
+    std::cout<< "CALLBACK COMPUTELAV()\n";
+    CDart *dart;
+    CAttributeMultivector *MD;
+    double L,A,V;
+    int i;
+
+    CGMapVertex* map=getControler()->getMap();
+    int mark=getControler()->getSelectionMark();
+    i=0;L=0;A=0;V=0;
+
+    for(CDynamicCoverageAll it(map); it.cont(); ++it)
+    {
+        if(map->isMarked(*it,mark))
+        {
+            dart=(*it)  ;
+            MD=(CAttributeMultivector*) dart->getAttribute(ORBIT_SELF,ATTRIBUTE_MULTIVECTOR);
+            if(MD!=0)
+            {
+                L+=MD->getL();
+                A+=MD->getA();
+                V+=MD->getV();
+                //std::cout<<MD->getL()<<",";
+                if(fabs(MD->getA())>0.000000001)
+                    std::cout<<"["<<i<<"]"<<MD->getA()<<",";
+                //std::cout<<MD->getV()<<",";
+            }
+            else
+                std::cout<<"SIN ATRIBUTO\n";
+          ++i;
+        }
+    }
+    std::cout<<i<<" dardos\n";
+    std::cout<<"LENGTH=\t"<<L<<"\n";
+    std::cout<<"AREA=\t"  <<A<<"\n";
+    std::cout<<"VOLUME=\t"<<V<<"\n";
+}
+
 void Window :: callback2Manifold()
 {
   getControler()->countNonLocalDegreeTwoEdges();

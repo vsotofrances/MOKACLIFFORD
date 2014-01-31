@@ -238,6 +238,12 @@ MenuBar :: MenuBar(Window * parent)
 
    operations -> addSeparator() ;
 
+   //-- length,area volume VSF
+   operations -> addAction("&LAV",FParent,SLOT(callbackComputeLAV()),
+                           Qt::ALT+Qt::SHIFT+Qt::Key_L);
+
+   operations -> addSeparator() ;
+
    //-- coudre
    QMenu * coudre = operations -> addMenu("&Sew") ;
 

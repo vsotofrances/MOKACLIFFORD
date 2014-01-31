@@ -94,8 +94,9 @@ double CMultivector::computeLAV(void)
 
     //D normal vector to the face
 //    std::cout<< "** Vector normal hacia la cara **\n";
-    C=-A*I;//!< Vector normal a la cara en R3
-    N=(T*A).Grade(1);//!< producto escalar del vector B por el bivector A
+    //C=-A*I;//!< Vector normal a la cara en R3
+    //N=(T*A).Grade(1);//!< producto escalar del vector B por el bivector A
+    N=-I*(B^T);
 //    std::cout<<A<<","<<D<<","<< C;
 //    std::cout<<std::endl;
     Nnorm=sqrt(N[E1]*N[E1]+N[E2]*N[E2]+N[E3]*N[E3]);
@@ -121,8 +122,16 @@ double CMultivector::computeLAV(void)
     this->a=this->l*(V*N)[0]/Nnorm;
     this->v=this->a*(V*B)[0]/Bnorm*volume;//! chages the sense of B thus the scalar product
     /*! use factors: Warning the signs are not included */
-    this->a*=0.5;//! 1/2
-    this->v*=0.1666666666666667; //! 1/6
+    this->l*=-1.0;//! -1
+    this->a*= 0.5;//! 1/2
+    this->v*=-0.1666666666666667; //! -1/6
+    if(V[E2]!=0)
+    {
+    std::cout <<"V= "<<V[E1]<<","<<V[E2]<<","<<V[E3]<<":";
+    std::cout <<"T= "<<T[E1]<<","<<T[E2]<<","<<T[E3]<<"||"<<Tnorm<<"||:";
+    std::cout <<"N= "<<N[E1]<<","<<N[E2]<<","<<N[E3]<<"||"<<Nnorm<<"||:";
+    std::cout <<"B= "<<B[E1]*volume<<","<<B[E2]*volume<<","<<B[E3]*volume<<"||"<<Bnorm<<"||\n";
+    }
 }
 //******************************************************************************
 //INLINE

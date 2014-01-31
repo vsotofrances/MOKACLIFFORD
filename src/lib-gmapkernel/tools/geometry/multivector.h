@@ -37,6 +37,9 @@ private:
 public:
     /** Get */
     nklein::GeometricAlgebra< double, 4 > getMD() const;
+    double getL() const {return l;};
+    double getA() const {return a;};
+    double getV() const {return v;};
     /** Set */
     void setMD(nklein::GeometricAlgebra< double, 4 > MVector);
 public:

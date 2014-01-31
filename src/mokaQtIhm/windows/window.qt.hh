@@ -451,7 +451,9 @@ public slots:
   // -- Homology
   void callbackComputeSurfacicHomology();
   void callbackComputeVolumicHomology();
-  
+
+  // -- Compute length,area,volume
+  void callbackComputeLAV();
   
   // Slots Menu Geologie
   //********************
