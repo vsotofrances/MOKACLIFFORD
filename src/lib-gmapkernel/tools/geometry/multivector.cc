@@ -118,9 +118,9 @@ double CMultivector::computeLAV(void)
     V[E3]=point[e3];
 
     /*! RESULTS */
-    this->l=(V*T)[0]/Tnorm;
-    this->a=this->l*(V*N)[0]/Nnorm;
-    this->v=this->a*(V*B)[0]/Bnorm*volume;//! chages the sense of B thus the scalar product
+    this->l=(V.Grade(1)*T.Grade(1))[0]/Tnorm;
+    this->a=this->l*(V.Grade(1)*N.Grade(1))[0]/Nnorm;
+    this->v=this->a*(V.Grade(1)*B.Grade(1))[0]/Bnorm*volume;//! chages the sense of B thus the scalar product
     /*! use factors: Warning the signs are not included */
     this->l*=-1.0;//! -1
     this->a*= 0.5;//! 1/2

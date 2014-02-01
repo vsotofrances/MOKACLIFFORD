@@ -1352,7 +1352,7 @@ void Window::callbackComputeLAV() //! VSF
                 //std::cout<<MD->getV()<<",";
             }
             else
-                std::cout<<"SIN ATRIBUTO\n";
+                std::cout<<"SIN ATRIBUTO_MULTIVECTOR\n";
           ++i;
         }
     }
