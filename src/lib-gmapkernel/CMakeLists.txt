@@ -50,7 +50,9 @@ add_library (gmapkernel
 #VICTOR para añadir fichero de solo cabecera y que aparezcan en QTCREATOR
 # 9/SEPT/2015
 add_custom_target(moka SOURCES tools/geometry/geoma.h
-                               tools/geometry/geomaData.h   )
+                               tools/geometry/geomaData.h
+                               g-map-vertex/attribute-multivector.icc
+   )
 
 #-------------------------------------------------------------------------------
 if (MODULE_COREFINEMENT)

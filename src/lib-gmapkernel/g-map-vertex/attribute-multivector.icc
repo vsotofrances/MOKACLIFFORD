@@ -1,0 +1,61 @@
+//******************************************************************************
+#include "attributes-id.hh"
+//******************************************************************************
+INLINE
+CAttributeMultivector::CAttributeMultivector()
+  : CAttribute(), CMultivector()
+{
+}
+//******************************************************************************
+INLINE
+CAttributeMultivector::CAttributeMultivector(const CMultivector & AMultivector)
+  : CAttribute(), CMultivector(AMultivector)
+{
+}
+//******************************************************************************
+INLINE
+CAttributeMultivector::CAttributeMultivector(const CAttributeMultivector & AAttributeMultivector)
+  : CAttribute(AAttributeMultivector), CMultivector(AAttributeMultivector)
+{
+}
+//******************************************************************************
+INLINE
+CAttributeMultivector::~CAttributeMultivector()
+{
+}
+//******************************************************************************
+INLINE
+TAttributeId CAttributeMultivector::getType() const
+{
+  return ATTRIBUTE_MULTIVECTOR;
+}
+//******************************************************************************
+INLINE
+CAttribute * CAttributeMultivector::copy() const
+{
+  return new CAttributeMultivector(*this);
+}
+//******************************************************************************
+INLINE
+void CAttributeMultivector::destroy()
+{
+  delete this;
+}
+//******************************************************************************
+INLINE
+void CAttributeMultivector::save(std::ostream & /*AStream*/) const
+{
+}
+//******************************************************************************
+INLINE
+void CAttributeMultivector::load(std::istream & /*AStream*/)
+{
+}
+//******************************************************************************
+INLINE
+std::ostream & operator<<(std::ostream & AStream,
+                          const CAttributeMultivector & AMultivector)
+{
+  return AStream << (CMultivector) AMultivector;
+}
+//******************************************************************************
